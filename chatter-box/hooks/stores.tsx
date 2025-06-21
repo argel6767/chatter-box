@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import {User} from '@/lib/models/models'
 
 export const useSearchQueryStore = create((set) => ({
     searchQuery: "",
