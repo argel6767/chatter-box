@@ -1,0 +1,108 @@
+package com.chat_room_app.users;
+
+import com.chat_room_app.auth.AuthDetails;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.java.Log;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles("test")
+@Transactional
+@Log
+class UserControllerTest {
+
+    @Autowired private MockMvc mockMvc;
+
+    @Autowired private ObjectMapper objectMapper;
+
+    @Autowired private UserRepository userRepository;
+
+    private String toJson(Object o) throws Exception {
+        return objectMapper.writeValueAsString(o);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/me → 200 OK")
+    @WithMockUser(username = "Billy")
+    void getUser_authenticated() throws Exception {
+        User user = new User("Billy", "billy@email.com", "password");
+        AuthDetails authDetails = new AuthDetails();
+        authDetails.setIsVerified(true);
+        authDetails.setAuthorities("ROLE_USER");
+        user.setAuthDetails(authDetails);
+        userRepository.save(user);
+
+        mockMvc.perform(
+                get("/api/v1/users/me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("Billy"));
+    }
+
+    @Test
+    @DisplayName("Fetching user while unauthenticated → 403 FORBIDDEN")
+    void getUser_unauthenticated() throws Exception {
+        User user = new User("Billy", "billy@email.com", "password");
+        AuthDetails authDetails = new AuthDetails();
+        authDetails.setIsVerified(true);
+        authDetails.setAuthorities("ROLE_USER");
+        user.setAuthDetails(authDetails);
+        userRepository.save(user);
+
+        mockMvc.perform(
+                        get("/api/v1/users/me"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorMessage").value("No authenticated user found"))
+                .andExpect(jsonPath("$.instance").value("/api/v1/users/me"));
+    }
+
+    @Test
+    @DisplayName("DEL /api/v1/users/me → 201 NO CONTENT")
+    @WithMockUser(username = "Billy")
+    void deleteUser_authenticated() throws Exception {
+        User user = new User("Billy", "billy@email.com", "password");
+        AuthDetails authDetails = new AuthDetails();
+        authDetails.setIsVerified(true);
+        authDetails.setAuthorities("ROLE_USER");
+        user.setAuthDetails(authDetails);
+        userRepository.save(user);
+
+        mockMvc.perform(
+                        delete("/api/v1/users/me"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Delete user unauthenticated → 403 FORBIDDEN")
+    void deleteUser_unauthenticated() throws Exception {
+        User user = new User("Billy", "billy@email.com", "password");
+        AuthDetails authDetails = new AuthDetails();
+        authDetails.setIsVerified(true);
+        authDetails.setAuthorities("ROLE_USER");
+        user.setAuthDetails(authDetails);
+        userRepository.save(user);
+
+        mockMvc.perform(
+                        delete("/api/v1/users/me"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorMessage").value("No authenticated user found"))
+                .andExpect(jsonPath("$.instance").value("/api/v1/users/me"));
+    }
+
+}
