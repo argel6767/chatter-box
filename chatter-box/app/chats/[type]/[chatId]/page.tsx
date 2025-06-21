@@ -1,4 +1,5 @@
 import { ChatRoomList, DirectMessageList, Sidebar } from "../../components";
+import {ChatContainer} from "@/app/chats/[type]/[chatId]/components";
 
 export default function ChatPage({ 
     params 
@@ -20,9 +21,8 @@ export default function ChatPage({
           <section>
             <DirectMessageList/>
           </section>
-
         </div>
-            <p>Type: {type}, ID: {id}</p>
+            <ChatContainer/>
         </div>
         </div>);
   }

@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import MessageLoading from "./message-loading";
-import { Button } from "../button";
+import { Button, ButtonProps } from "../button";
 
 // ChatBubble
 const chatBubbleVariant = cva(
@@ -76,8 +76,8 @@ const chatBubbleMessageVariants = cva("p-4", {
   variants: {
     variant: {
       received:
-        "bg-slate-300 text-gray-700 rounded-r-lg rounded-tl-lg",
-      sent: "bg-slate-600 text-slate-200 rounded-l-lg rounded-tr-lg",
+        "bg-secondary text-secondary-foreground rounded-r-lg rounded-tl-lg",
+      sent: "bg-primary text-primary-foreground rounded-l-lg rounded-tr-lg",
     },
     layout: {
       default: "",
@@ -141,12 +141,8 @@ const ChatBubbleTimestamp: React.FC<ChatBubbleTimestampProps> = ({
 );
 
 // ChatBubbleAction
-type ChatBubbleActionProps = {
+type ChatBubbleActionProps = ButtonProps & {
   icon: React.ReactNode;
-  onClick: React.MouseEventHandler<HTMLButtonElement> | undefined,
-  className: string,
-  variant?: "default" | "ghost" | "link" | "destructive" | "outline" | "secondary" | null | undefined | "bubbleAction",
-  size?: "default" | "icon" | "sm" | "lg" | null | undefined
 };
 
 const ChatBubbleAction: React.FC<ChatBubbleActionProps> = ({

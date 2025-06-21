@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { useSearchQuery } from "@/hooks/stores"
+import { useSearchQueryStore } from "@/hooks/stores"
 import { Badge, MessageCircle, Plus, Search, Settings, Users, Hash, Volume2, Lock } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -12,8 +12,8 @@ import { useRouter } from "next/navigation"
 
 export const Sidebar = () => {
 
-    const searchQuery = useSearchQuery((state) => state.searchQuery);
-    const setSearchQuery = useSearchQuery((state) => state.setSearchQuery)
+    const searchQuery = useSearchQueryStore((state) => state.searchQuery);
+    const setSearchQuery = useSearchQueryStore((state) => state.setSearchQuery)
 
     return (
           <main>
@@ -124,7 +124,7 @@ export const ChatRoomList = () => {
       ];
     const router = useRouter();
     //const [chatRooms, setChatRooms] = useState<any>([]);
-    const searchQuery:string = useSearchQuery((state) => state.searchQuery)
+    const searchQuery:string = useSearchQueryStore((state) => state.searchQuery)
 
     const filteredRooms = chatRooms.filter(room => 
         room.name.toLowerCase().includes(searchQuery)
@@ -229,7 +229,7 @@ export const DirectMessageList = () => {
 
     const router = useRouter();
    // const [directMessages, setDirectMessages] = useState<any>([]);
-    const searchQuery:string = useSearchQuery((state) => state.searchQuery);
+    const searchQuery:string = useSearchQueryStore((state) => state.searchQuery);
 
     const handleChatClick = (chatId: number, type: 'room' | 'dm') => {
         router.push(`/chats/${type}/${chatId}`);
