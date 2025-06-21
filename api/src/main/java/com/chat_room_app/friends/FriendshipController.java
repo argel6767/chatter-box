@@ -44,7 +44,7 @@ public class FriendshipController {
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
-    @GetMapping("/friends")
+    @GetMapping()
     public ResponseEntity<Set<FriendshipDto>> getFriends() {
         Long userId = JwtUtils.getCurrentUserId();
         Set<FriendshipDto> friends = friendshipService.getAllFriends(userId);

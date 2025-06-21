@@ -49,7 +49,7 @@ public class FriendshipService {
         friendship.setStatus(FriendStatus.PENDING);
 
         Friendship saved = friendshipRepository.save(friendship);
-        return createFriendshipDto(user, potentialFriend, saved.getStatus());
+        return createFriendshipDto(saved.getId(), user, potentialFriend, saved.getStatus());
     }
 
     /**
@@ -62,7 +62,7 @@ public class FriendshipService {
         friendship.setStatus(FriendStatus.ACCEPTED);
         User receiver = friendship.getReceiver();
         User requester = friendship.getRequester();
-        return createFriendshipDto(receiver, requester, FriendStatus.ACCEPTED);
+        return createFriendshipDto(friendshipId, receiver, requester, FriendStatus.ACCEPTED);
     }
 
     /**
@@ -97,7 +97,7 @@ public class FriendshipService {
         blockFriendship.setStatus(FriendStatus.BLOCKED);
 
         friendshipRepository.save(blockFriendship);
-        return createFriendshipDto(user, blockedUser, FriendStatus.BLOCKED);
+        return createFriendshipDto(blockFriendship.getId(), user, blockedUser, FriendStatus.BLOCKED);
     }
 
     /**
@@ -113,7 +113,7 @@ public class FriendshipService {
         friends.addAll(
                 friendshipRepository.findAllByRequesterAndStatus(currentUser, FriendStatus.ACCEPTED)
                         .stream()
-                        .map(friendship -> createFriendshipDto(currentUser, friendship.getReceiver(), friendship.getStatus()))
+                        .map(friendship -> createFriendshipDto(friendship.getId(), currentUser, friendship.getReceiver(), friendship.getStatus()))
                         .collect(Collectors.toSet())
         );
 
@@ -121,7 +121,7 @@ public class FriendshipService {
         friends.addAll(
                 friendshipRepository.findAllByReceiverAndStatus(currentUser, FriendStatus.ACCEPTED)
                         .stream()
-                        .map(friendship -> createFriendshipDto(currentUser, friendship.getRequester(), friendship.getStatus()))
+                        .map(friendship -> createFriendshipDto(friendship.getId(), currentUser, friendship.getRequester(), friendship.getStatus()))
                         .collect(Collectors.toSet())
         );
 
@@ -137,7 +137,7 @@ public class FriendshipService {
         User currentUser = findUserById(userId);
         return friendshipRepository.findAllByRequesterAndStatus(currentUser, FriendStatus.BLOCKED)
                 .stream()
-                .map(friendship -> createFriendshipDto(currentUser, friendship.getReceiver(), friendship.getStatus()))
+                .map(friendship -> createFriendshipDto(friendship.getId(), currentUser, friendship.getReceiver(), friendship.getStatus()))
                 .collect(Collectors.toSet());
     }
 
@@ -150,7 +150,7 @@ public class FriendshipService {
         User currentUser = findUserById(userId);
         return friendshipRepository.findAllByReceiverAndStatus(currentUser, FriendStatus.PENDING)
                 .stream()
-                .map(friendship -> createFriendshipDto(currentUser, friendship.getRequester(), friendship.getStatus()))
+                .map(friendship -> createFriendshipDto(friendship.getId(), currentUser, friendship.getRequester(), friendship.getStatus()))
                 .collect(Collectors.toSet());
     }
 
@@ -177,9 +177,9 @@ public class FriendshipService {
                 .ifPresent(friendshipRepository::delete);
     }
 
-    private FriendshipDto createFriendshipDto(User user, User friend, FriendStatus status) {
+    private FriendshipDto createFriendshipDto(Long friendshipId, User user, User friend, FriendStatus status) {
         FriendIdAndNameDto userDto = new FriendIdAndNameDto(user.getId(), user.getUsername());
         FriendIdAndNameDto friendDto = new FriendIdAndNameDto(friend.getId(), friend.getUsername());
-        return new FriendshipDto(userDto, friendDto, status);
+        return new FriendshipDto(friendshipId, userDto, friendDto, status);
     }
 }
