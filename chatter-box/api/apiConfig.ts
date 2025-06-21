@@ -13,3 +13,21 @@ export const failedCallMessage = (error: any): string => {
 };
 
 export const API_VERSION_PATHING_V1 = "/api/v1";
+
+export interface ApiResponseWrapper<T> {
+    statusCode: number,
+    data: T
+}
+
+export const createResponseWrapper = <T>(data: T, statusCode: number): ApiResponseWrapper<T> => {
+    return {
+        statusCode: statusCode,
+        data: data
+    }
+}
+
+export interface FailedAPIRequestResponse {
+    errorMessage: string,
+    instance: string
+}
+ 
