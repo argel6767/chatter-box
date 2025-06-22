@@ -6,7 +6,7 @@ import {
     ChatBubbleAvatar,
     ChatBubbleMessage
 } from "@/components/ui/chat/chat-bubble";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useState, useRef} from "react";
 import {Label} from "@/components/ui/label";
 import {CornerDownLeft, Edit, Paperclip, Trash} from "lucide-react";
 import {ChatInput} from "@/components/ui/chat/chat-input";
@@ -16,8 +16,6 @@ import {useWebSocket} from "@/hooks/use-web-socket";
 import {useGetChatRoom} from "@/hooks/react-query";
 import {ApiResponseWrapper, FailedAPIRequestResponse} from "@/api/apiConfig";
 import {useUserStore} from "@/hooks/stores";
-
-
 
 type Variant = "received" | "sent";
 
@@ -29,69 +27,74 @@ const ChatInputWrapper = ({id}: ChatInputWrapperProps) => {
     const {sendMessage, connected} = useWebSocket(id);
     const [message, setMessage] = useState("");
 
+    const handleSendMessage = async () => {
+        const trimmedMessage = message.trim();
+        if (!trimmedMessage) return;
 
-    const handleSendMessage = () => {
-        sendMessage(message.trim());
-        setMessage("");
+        try {
+            await sendMessage(trimmedMessage);
+            setMessage("");
+        } catch (err) {
+            console.error('Failed to send message:', err);
+        }
     }
 
-
-    const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSendMessage();
         }
     };
 
-    const handleClickSend = (e) => {
+    const handleClickSend = (e: React.FormEvent) => {
         e.preventDefault();
         handleSendMessage();
     }
 
     return (
-            <form onSubmit={handleClickSend} onKeyDownCapture={handleKeyPress}
-                className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring p-1 bg-slate-300 shadow-lg"
-                    >
-                    <ChatInput
-                    placeholder="Type your message here..."
-                    className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0 min-w-3xl bg-slate-300 resize-none"
-                    rows={5}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    />
-                    <div className="flex items-center p-3 pt-0">
-                    <Button variant="ghost" size="icon">
+        <form onSubmit={handleClickSend} onKeyDown={handleKeyPress}
+              className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring p-1 bg-slate-300 shadow-lg"
+        >
+            <ChatInput
+                placeholder="Type your message here..."
+                className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0 min-w-3xl bg-slate-300 resize-none"
+                rows={5}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+            />
+            <div className="flex items-center p-3 pt-0">
+                <Button variant="ghost" size="icon">
                     <Paperclip className="size-4" />
                     <span className="sr-only">Attach file</span>
-            </Button>
+                </Button>
                 <Button
                     size="sm"
                     className="ml-auto gap-1.5"
-                    disabled={!connected}
+                    disabled={!connected || !message.trim()}
                 >
                     Send Message
                     <CornerDownLeft className="size-3.5" />
                 </Button>
             </div>
-            </form>
-            )
+        </form>
+    )
 }
-
 
 interface ChatMessageProps {
     variant: Variant,
     content: string,
     author: string,
-    timeSent: string
-
+    timeSent: string,
+    onDelete?: () => void,
+    onEdit?: () => void
 }
 
-const ChatMessage = ({variant, content, author, timeSent}:ChatMessageProps) => {
+const ChatMessage = ({variant, content, author, timeSent, onDelete, onEdit}: ChatMessageProps) => {
     const fallBack = author.substring(0,1).toUpperCase();
     const textAlignment = variant === "sent"? "text-right" : "text-left";
     const actionIcons = [
-        { icon: Trash, type: "Delete" },
-        {icon: Edit, type: "Edit"},
+        { icon: Trash, type: "Delete", action: onDelete },
+        { icon: Edit, type: "Edit", action: onEdit },
     ];
 
     return (
@@ -104,21 +107,19 @@ const ChatMessage = ({variant, content, author, timeSent}:ChatMessageProps) => {
                     <Label>{timeSent}</Label>
                 </section>
             </ChatBubbleMessage>
-            <ChatBubbleActionWrapper>
-                {actionIcons.map(({ icon: Icon, type }, index) => (
-                    <ChatBubbleAction
-                        className="size-7"
-                        key={type}
-                        icon={<Icon className="size-4 text-slate-200" />}
-                        onClick={() =>
-                            console.log(
-                                "Action " + type + " clicked for message " + index,
-                            )
-                        }
-                        variant={"bubbleAction"}
-                    />
-                ))}
-            </ChatBubbleActionWrapper>
+            {variant === "sent" && (
+                <ChatBubbleActionWrapper>
+                    {actionIcons.map(({ icon: Icon, type, action }) => (
+                        <ChatBubbleAction
+                            className="size-7"
+                            key={type}
+                            icon={<Icon className="size-4 text-slate-200" />}
+                            onClick={action}
+                            variant={"bubbleAction"}
+                        />
+                    ))}
+                </ChatBubbleActionWrapper>
+            )}
         </ChatBubble>
     )
 }
@@ -128,40 +129,46 @@ interface ChatContainerProps {
 }
 
 export const ChatContainer = ({id}: ChatContainerProps) => {
-    const webSocket = useWebSocket(id)
+    const webSocket = useWebSocket(id);
     const chatRoom = useGetChatRoom(id);
     const [isFailed, setIsFailed] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [chatRoomDetails, setChatRoomDetails] = useState<ChatRoom>({creator: "", id: 0, members: [], messages: [], name: ""});
+    const [chatRoomDetails, setChatRoomDetails] = useState<ChatRoom>({
+        creator: "",
+        id: 0,
+        members: [],
+        messages: [],
+        name: ""
+    });
     const {user} = useUserStore();
+    const [subscribed, setSubscribed] = useState(false);
+    const subscriptionAttemptRef = useRef(false);
 
+    // Process chat room data
     useEffect(() => {
         if (chatRoom.data) {
-            const data = chatRoom.data
+            const data = chatRoom.data;
             const isFailedResponse = (response: ApiResponseWrapper<ChatRoom | FailedAPIRequestResponse>): response is ApiResponseWrapper<FailedAPIRequestResponse> => {
                 return response.statusCode !== 200;
             }
 
             if (isFailedResponse(data)) {
-                setIsFailed(true)
-                setErrorMessage(data.data.errorMessage)
-            }
-            else {
-                const chatRoom = data.data as ChatRoom;
-                setChatRoomDetails(chatRoom);
+                setIsFailed(true);
+                setErrorMessage(data.data.errorMessage);
+            } else {
+                const chatRoomData = data.data as ChatRoom;
+                setChatRoomDetails(chatRoomData);
             }
         }
-    }, [chatRoom.data])
+    }, [chatRoom.data]);
 
-    const handleMessage = useCallback(
-        (message: Message) => {
-            setChatRoomDetails((prev: ChatRoom) => ({
-                ...prev,
-                messages: [...prev.messages, message],
-            }));
-        },
-        []
-    );
+    // Message handlers
+    const handleMessage = useCallback((message: Message) => {
+        setChatRoomDetails((prev: ChatRoom) => ({
+            ...prev,
+            messages: [...prev.messages, message],
+        }));
+    }, []);
 
     const handleDelete = useCallback((messageId: number) => {
         setChatRoomDetails((prev: ChatRoom) => ({
@@ -179,45 +186,105 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
         }));
     }, []);
 
+    // Handle WebSocket subscriptions
     useEffect(() => {
-        if (webSocket.connected && id) {
-            webSocket.subscribeToRoom({
-                onMessage: handleMessage,
-                onDelete: handleDelete,
-                onEdit: handleEdit,
-            });
+        if (!webSocket.connected || !id || subscribed || subscriptionAttemptRef.current) {
+            return;
         }
-    }, [webSocket, id, handleMessage, handleDelete, handleEdit]);
 
-    if (chatRoom.isLoading || !webSocket.connected) {
+        subscriptionAttemptRef.current = true;
+
+        const setupSubscriptions = async () => {
+            try {
+                const result = await webSocket.subscribeToRoom({
+                    onMessage: handleMessage,
+                    onDelete: handleDelete,
+                    onEdit: handleEdit,
+                });
+
+                if (result) {
+                    setSubscribed(true);
+                    console.log('Successfully subscribed to room:', id);
+                }
+            } catch (err) {
+                console.error('Failed to subscribe to room:', err);
+                subscriptionAttemptRef.current = false;
+            }
+        };
+
+        setupSubscriptions();
+
+        return () => {
+            if (subscribed) {
+                webSocket.unsubscribe(id);
+                setSubscribed(false);
+                subscriptionAttemptRef.current = false;
+            }
+        };
+    }, [webSocket, id, subscribed, handleMessage, handleDelete, handleEdit]);
+
+    // Delete message handler
+    const handleDeleteMessage = useCallback(async (messageId: number) => {
+        try {
+            await webSocket.deleteMessage(messageId);
+        } catch (err) {
+            console.error('Failed to delete message:', err);
+        }
+    }, [webSocket]);
+
+    // Edit message handler (placeholder)
+    const handleEditMessage = useCallback(async (messageId: number) => {
+        // TODO: Implement edit functionality
+        console.log('Edit message:', messageId);
+    }, []);
+
+    if (chatRoom.isLoading && !subscribed && webSocket.connected) {
         return (
-            <div>Loading...</div>
-        )
+            <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                    <h1 className="text-xl mb-2">Loading chat room...</h1>
+                    <p className="text-sm text-gray-500">Establishing connection</p>
+                </div>
+            </div>
+        );
     }
 
     if (isFailed || webSocket.error) {
-        const error = errorMessage.length > 0 ? errorMessage : "Connection could not be established."
+        const error = errorMessage || webSocket.error || "Connection could not be established.";
         return (
             <div className={"text-center text-red-500 flex flex-col items-center justify-center h-full"}>
-                <h1 className={"text-2xl"}>Failed to load chat room</h1>
-                <p className={"text-1xl"}>{error}</p>
-                <Button variant={"default"} >Try Again</Button>
+                <h1 className={"text-4xl"}>Failed to load chat room</h1>
+                <p className={"text-3xl"}>{error}</p>
+                <Button
+                    variant={"default"}
+                    onClick={() => window.location.reload()}
+                >
+                    Try Again
+                </Button>
             </div>
-        )
+        );
     }
 
     return (
         <main className={"flex flex-col items-center justify-center bg-black/10 w-full pt-2 pb-4"}>
-            <h1 className={"text-2xl font-bold text-slate-200"}>{chatRoomDetails.name}</h1>
+            <h1 className={"text-4xl font-bold text-slate-200 pt-2"}>{chatRoomDetails.name}</h1>
             <ChatMessageList>
                 {chatRoomDetails.messages.map((message) => {
-                    const variant: Variant = message.author ===  user.username? "sent" : "received";
-                    return (<ChatMessage key={message.id} variant={variant} content={message.content} author={message.author} timeSent={message.timeSent} />)
+                    const variant: Variant = message.author === user.username ? "sent" : "received";
+                    return (
+                        <ChatMessage
+                            key={message.id}
+                            variant={variant}
+                            content={message.content}
+                            author={message.author}
+                            timeSent={message.timeSent}
+                            onDelete={variant === "sent" ? () => handleDeleteMessage(message.id) : undefined}
+                            onEdit={variant === "sent" ? () => handleEditMessage(message.id) : undefined}
+                        />
+                    );
                 })}
             </ChatMessageList>
             <ChatInputWrapper id={id}/>
         </main>
-    )
-}
-
-
+    );
+};

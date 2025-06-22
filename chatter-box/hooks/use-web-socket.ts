@@ -1,54 +1,88 @@
-// hooks/useWebSocket.js
-import { useEffect, useState, useCallback } from 'react';
-import WebSocketService from '../web_socket/web-socket-service';
-import { UpdateMessageDto} from "@/lib/models/requests";
+import { useEffect, useState, useCallback, useRef } from 'react';
+import {WebSocketService} from '@/web_socket/web-socket-service';
+import { UpdateMessageDto } from "@/lib/models/requests";
 
 export const useWebSocket = (chatRoomId: number) => {
     const [connected, setConnected] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
+    const [subscribing, setSubscribing] = useState(false);
+    const subscriptionRef = useRef<string[] | null>(null);
+    const webSocket = new  WebSocketService();
 
     useEffect(() => {
+        let mounted = true;
+
         const connect = async () => {
             try {
-                await WebSocketService.connect();
-                setConnected(true);
-                setError(null);
-            } catch (err) {
-                setError(err.message);
-                setConnected(false);
+                await webSocket.connect();
+                if (mounted) {
+                    setConnected(true);
+                    setError(null);
+                }
+            } catch (err: any) {
+                if (mounted) {
+                    setError(err.message);
+                    setConnected(false);
+                }
             }
         };
 
         connect();
 
-        // Note: We don't disconnect on unmount because other components might be using it
         return () => {
-            if (chatRoomId) {
-                WebSocketService.unsubscribeFromRoom(chatRoomId);
+            mounted = false;
+            if (chatRoomId && subscriptionRef.current) {
+                webSocket.unsubscribeFromRoom(chatRoomId);
             }
         };
     }, [chatRoomId]);
 
-    const subscribeToRoom = useCallback((callbacks) => {
-        if (!connected || !chatRoomId) return null;
+    const subscribeToRoom = useCallback(async (callbacks: any) => {
+        if (!chatRoomId || subscribing) return null;
 
-        return WebSocketService.subscribeToRoom(chatRoomId, callbacks);
-    }, [connected, chatRoomId]);
+        setSubscribing(true);
+        try {
+            // This now waits for connection if needed
+            const keys = await webSocket.subscribeToRoom(chatRoomId, callbacks);
+            subscriptionRef.current = keys;
+            return keys;
+        } catch (err: any) {
+            console.error('Failed to subscribe to room:', err);
+            setError(err.message);
+            return null;
+        } finally {
+            setSubscribing(false);
+        }
+    }, [chatRoomId, subscribing]);
 
-    const sendMessage = useCallback((content: string) => {
-        if (!connected || !chatRoomId) return;
-        WebSocketService.sendMessage(chatRoomId, content);
-    }, [connected, chatRoomId]);
+    const sendMessage = useCallback(async (content: string) => {
+        if (!chatRoomId) return;
 
-    const deleteMessage = useCallback((messageId: number) => {
-        if (!connected) return;
-        WebSocketService.deleteMessage(messageId);
-    }, [connected]);
+        try {
+            await webSocket.sendMessage(chatRoomId, content);
+        } catch (err: any) {
+            console.error('Failed to send message:', err);
+            setError(err.message);
+        }
+    }, [chatRoomId]);
 
-    const editMessage = useCallback((messageId: number, newContent: UpdateMessageDto) => {
-        if (!connected) return;
-        WebSocketService.editMessage(messageId, newContent);
-    }, [connected]);
+    const deleteMessage = useCallback(async (messageId: number) => {
+        try {
+            await webSocket.deleteMessage(messageId);
+        } catch (err: any) {
+            console.error('Failed to delete message:', err);
+            setError(err.message);
+        }
+    }, []);
+
+    const editMessage = useCallback(async (messageId: number, newContent: UpdateMessageDto) => {
+        try {
+            await webSocket.editMessage(messageId, newContent);
+        } catch (err: any) {
+            console.error('Failed to edit message:', err);
+            setError(err.message);
+        }
+    }, []);
 
     return {
         connected,
@@ -57,5 +91,7 @@ export const useWebSocket = (chatRoomId: number) => {
         sendMessage,
         deleteMessage,
         editMessage,
+        subscribing,
+        unsubscribe: webSocket.unsubscribeFromRoom,
     };
 };

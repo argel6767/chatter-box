@@ -1,29 +1,31 @@
-
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import {NewMessageDto, UpdateMessageDto} from "@/lib/models/requests";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL;
 
-class WebSocketService {
+export class WebSocketService {
     client: Client | null;
-    connected;
-    subscriptions;
-    baseUrl;
+    connected: boolean;
+    subscriptions: Map<string, any>;
+    baseUrl: string;
+    connectionPromise: Promise<any> | null;
+
     constructor() {
         this.client = null;
         this.connected = false;
         this.subscriptions = new Map();
-        this.baseUrl = BASE_URL;
+        this.baseUrl = BASE_URL!;
+        this.connectionPromise = null;
     }
 
     connect() {
-        if (this.client && this.connected) {
-            console.log('Already connected');
-            return Promise.resolve();
+        // Return existing connection promise if already connecting/connected
+        if (this.connectionPromise) {
+            return this.connectionPromise;
         }
 
-        return new Promise((resolve, reject) => {
+        this.connectionPromise = new Promise((resolve, reject) => {
             this.client = new Client({
                 webSocketFactory: () => new SockJS(`${this.baseUrl}/ws`),
                 debug: (str) => {
@@ -44,22 +46,39 @@ class WebSocketService {
                 console.error('STOMP Error:', frame.headers['message']);
                 console.error('Details:', frame.body);
                 this.connected = false;
+                this.connectionPromise = null; // Reset on error
                 reject(new Error(frame.headers['message']));
             };
 
             this.client.onWebSocketClose = () => {
                 console.log('WebSocket connection closed');
                 this.connected = false;
+                this.connectionPromise = null; // Reset on close
             };
 
             this.client.activate();
         });
+
+        return this.connectionPromise;
+    }
+
+    // Ensure connection before operations
+    async ensureConnected() {
+        if (!this.isFullyConnected()) {
+            if (!this.connectionPromise) {
+                await this.connect();
+            } else {
+                await this.connectionPromise;
+            }
+        }
     }
 
     // Room-specific subscription methods
-    subscribeToRoom(chatRoomId: number, callbacks:any) {
-        if (!this.connected) {
-            throw new Error('Not connected to WebSocket');
+    async subscribeToRoom(chatRoomId: number, callbacks: any) {
+        await this.ensureConnected();
+
+        if (!this.isFullyConnected()) {
+            throw new Error('Failed to establish WebSocket connection');
         }
 
         const subscriptionKeys = [];
@@ -85,14 +104,14 @@ class WebSocketService {
         return subscriptionKeys;
     }
 
-    unsubscribeFromRoom(chatRoomId:number) {
+    unsubscribeFromRoom(chatRoomId: number) {
         this.unsubscribe(`/topic/chat.${chatRoomId}`);
         this.unsubscribe(`/topic/chat.${chatRoomId}.delete`);
         this.unsubscribe(`/topic/chat.${chatRoomId}.edit`);
     }
 
-    subscribe(destination: any, callback: any) {
-        if (!this.connected) {
+    subscribe(destination: string, callback: (data: any) => void) {
+        if (!this.isFullyConnected()) {
             throw new Error('Not connected to WebSocket');
         }
 
@@ -111,8 +130,10 @@ class WebSocketService {
     }
 
     // Room-specific action methods
-    sendMessage(chatRoomId: number, content: string) {
-        if (!this.connected) {
+    async sendMessage(chatRoomId: number, content: string) {
+        await this.ensureConnected();
+
+        if (!this.isFullyConnected()) {
             throw new Error('Not connected to WebSocket');
         }
 
@@ -125,8 +146,10 @@ class WebSocketService {
         });
     }
 
-    deleteMessage(messageId: number) {
-        if (!this.connected) {
+    async deleteMessage(messageId: number) {
+        await this.ensureConnected();
+
+        if (!this.isFullyConnected()) {
             throw new Error('Not connected to WebSocket');
         }
 
@@ -138,8 +161,10 @@ class WebSocketService {
         });
     }
 
-    editMessage(messageId: number, newContent: UpdateMessageDto) {
-        if (!this.connected) {
+    async editMessage(messageId: number, newContent: UpdateMessageDto) {
+        await this.ensureConnected();
+
+        if (!this.isFullyConnected()) {
             throw new Error('Not connected to WebSocket');
         }
 
@@ -152,7 +177,7 @@ class WebSocketService {
         });
     }
 
-    unsubscribe(destination: any) {
+    unsubscribe(destination: string) {
         const subscription = this.subscriptions.get(destination);
         if (subscription) {
             subscription.unsubscribe();
@@ -169,6 +194,7 @@ class WebSocketService {
 
             this.client.deactivate();
             this.connected = false;
+            this.connectionPromise = null;
             this.client = null;
         }
     }
@@ -176,6 +202,9 @@ class WebSocketService {
     isConnected() {
         return this.connected;
     }
-}
 
-export default new WebSocketService();
+    // More accurate connection check
+    isFullyConnected() {
+        return this.connected && this.client?.active === true;
+    }
+}

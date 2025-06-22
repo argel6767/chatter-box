@@ -149,10 +149,12 @@ export const Login = () => {
         }
         else {
             const userData = response.data;
+            localStorage.setItem("user", JSON.stringify(userData));
             setUser(userData);
             router.push("/chats");
         }
     }
+
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({

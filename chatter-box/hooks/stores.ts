@@ -12,16 +12,7 @@ interface UserStore {
 }
 
 export const useUserStore = create<UserStore>((set) => ({
-    user: {
-        email: '',
-        username: '',
-        chatRooms: [],
-        authDetails: {
-            id: 0,
-            isVerified: false,
-            roles: []
-        }
-    },
+    user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : {},
     setUser: (newUser: User) => set(() => ({ user: newUser }))
 }));
 
