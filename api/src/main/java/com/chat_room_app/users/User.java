@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"chatRooms", "friends"})
+@EqualsAndHashCode(exclude = {"chatRooms"})
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {

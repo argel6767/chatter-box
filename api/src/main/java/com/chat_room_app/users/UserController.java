@@ -2,6 +2,7 @@ package com.chat_room_app.users;
 
 import com.chat_room_app.jwt.JwtUtils;
 import com.chat_room_app.users.dtos.UserDto;
+import com.chat_room_app.users.dtos.UserProfileDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,4 +31,11 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{searchUserId}")
+    public ResponseEntity<UserProfileDto> getProfile(@PathVariable Long searchUserId) {
+        Long requesterId = JwtUtils.getCurrentUserId();
+        UserProfileDto dto = userService.getUserProfile(searchUserId, requesterId);
+        return ResponseEntity.ok(dto);
+    }
+    
 }
