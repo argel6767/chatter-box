@@ -21,3 +21,13 @@ export const deleteAccount = async () => {
         return getFailedResponse(error);
     }
 }
+
+export const getUserProfile = async (searchedUserId: number) => {
+    try {
+        const response = await apiClient.get(RESOURCE_PATH + `${searchedUserId}`);
+        return getSuccessfulResponse(response);
+    }
+    catch (error) {
+        getFailedResponse(error);
+    }
+}

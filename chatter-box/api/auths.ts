@@ -81,7 +81,7 @@ export const forgotPassword = async (username: string) => {
 
 export const resetPassword = async (request: ForgetPasswordDto) => {
     try {
-        const response = await apiClient.put(RESOURCE_PATH + "/reset");
+        const response = await apiClient.put(RESOURCE_PATH + "/reset", request);
         return getSuccessfulResponse(response);
     }
     catch (error) {

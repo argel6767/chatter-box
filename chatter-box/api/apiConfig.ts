@@ -20,6 +20,8 @@ export interface ApiResponseWrapper<T> {
     data: T
 }
 
+export type ApiResponseWrapperPromise<T, K> = Promise<ApiResponseWrapper<T | K>>
+
 const createResponseWrapper = <T>(data: T, statusCode: number): ApiResponseWrapper<T> => {
     return {
         statusCode: statusCode,
@@ -27,7 +29,7 @@ const createResponseWrapper = <T>(data: T, statusCode: number): ApiResponseWrapp
     }
 }
 
-interface FailedAPIRequestResponse {
+export interface FailedAPIRequestResponse {
     errorMessage: string,
     instance: string
 }
@@ -37,12 +39,12 @@ export const getFailedResponse = (error: unknown) => {
         throw error;
     }
     const errorBody = error?.response?.data;
-    const statusCode = error?.status;
+    const statusCode = error?.response?.status;
     console.error(failedCallMessage(error));
     return createResponseWrapper<FailedAPIRequestResponse>(errorBody, statusCode!);
 }
 
-export const getSuccessfulResponse = (response: AxiosResponse<any, any>) => {
-    return createResponseWrapper<User>(response.data, response.status);
+export const getSuccessfulResponse = <T>(response: AxiosResponse<any, any>) => {
+    return createResponseWrapper<T>(response.data, response.status);
 }
  

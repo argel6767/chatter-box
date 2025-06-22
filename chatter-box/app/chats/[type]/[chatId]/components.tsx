@@ -6,11 +6,14 @@ import {
     ChatBubbleAvatar,
     ChatBubbleMessage
 } from "@/components/ui/chat/chat-bubble";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Label} from "@/components/ui/label";
-import {CornerDownLeft, Edit, Mic, Paperclip, Trash} from "lucide-react";
+import {CornerDownLeft, Edit, Paperclip, Trash} from "lucide-react";
 import {ChatInput} from "@/components/ui/chat/chat-input";
 import {Button} from "@/components/ui/button";
+import {Message} from "@/lib/models/models"
+import {useWebSocket} from "@/hooks/use-web-socket";
+import {useGetChatRoom} from "@/hooks/react-query";
 
 
 type Variant = "received" | "sent";
@@ -88,13 +91,38 @@ const ChatMessage = ({variant, content, author, timeSent}:ChatMessageProps) => {
     )
 }
 
-export const ChatContainer = () => {
+interface ChatContainerProps {
+    id: number
+}
+
+export const ChatContainer = ({id}: ChatContainerProps) => {
+    const webSocket = useWebSocket(id)
+    const chatRoom = useGetChatRoom(id);
+    const [isFailed, setIsFailed] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
     const [messages, setMessages] = useState<Message[]>([
         {id: 1, content: "Hello Sir", author: "John Jones", timeSent: "10:30:15.123456789"},
         {id:2, content: "Hello Mr. Jones", author: "Argel Hernandez Amaya", timeSent: "10:32:15.123456789"}
     ]);
 
     const author = "Argel Hernandez Amaya"
+
+    useEffect(() => {
+        if (chatRoom.data) {
+            const data = chatRoom.data
+
+            if (!(data.statusCode === 200)) {
+                setIsFailed(true)
+                setErrorMessage(data.data.errorMessage)
+            }
+        }
+    })
+
+    if (chatRoom.isLoading) {
+        return (
+            <div>Loading...</div>
+        )
+    }
 
     return (
         <main className={"flex flex-col items-center justify-center bg-black/10 w-full pt-2 pb-4"}>

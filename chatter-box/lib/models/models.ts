@@ -15,7 +15,7 @@ export interface ChatRoom {
     messages: Message[]
 }
 
-interface Message {
+export interface Message {
     id: number,
     content: string,
     author: string,
