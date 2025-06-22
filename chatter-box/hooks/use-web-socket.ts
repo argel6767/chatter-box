@@ -35,7 +35,7 @@ export const useWebSocket = (chatRoomId: number) => {
         return WebSocketService.subscribeToRoom(chatRoomId, callbacks);
     }, [connected, chatRoomId]);
 
-    const sendMessage = useCallback((content: NewMessageDto) => {
+    const sendMessage = useCallback((content: string) => {
         if (!connected || !chatRoomId) return;
         WebSocketService.sendMessage(chatRoomId, content);
     }, [connected, chatRoomId]);

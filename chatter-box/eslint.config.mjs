@@ -11,6 +11,15 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      "react/react-in-jsx-scope": "off",
+      // This disables the ESLint rule for missing returns
+      "consistent-return": "off",
+      // If you use @typescript-eslint plugin:
+      "@typescript-eslint/explicit-function-return-type": "off",
+    },
+  }
 ];
 
 export default eslintConfig;

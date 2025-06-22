@@ -111,7 +111,7 @@ class WebSocketService {
     }
 
     // Room-specific action methods
-    sendMessage(chatRoomId: number, content: NewMessageDto) {
+    sendMessage(chatRoomId: number, content: string) {
         if (!this.connected) {
             throw new Error('Not connected to WebSocket');
         }

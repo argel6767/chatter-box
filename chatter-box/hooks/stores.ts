@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import {create} from 'zustand'
 import {User} from '@/lib/models/models'
 
 export const useSearchQueryStore = create((set) => ({
@@ -6,8 +6,22 @@ export const useSearchQueryStore = create((set) => ({
     setSearchQuery: (query: string) => set(() => ({ searchQuery: query.toLowerCase() }))
   }));
 
-export const useUserStore = create((set) => ({
-    user: {},
-    setUser: (newUser: User) => set(() => ({newUser}))
+interface UserStore {
+    user: User;
+    setUser: (newUser: User) => void;
+}
+
+export const useUserStore = create<UserStore>((set) => ({
+    user: {
+        email: '',
+        username: '',
+        chatRooms: [],
+        authDetails: {
+            id: 0,
+            isVerified: false,
+            roles: []
+        }
+    },
+    setUser: (newUser: User) => set(() => ({ user: newUser }))
 }));
 

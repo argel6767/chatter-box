@@ -7,6 +7,7 @@ import {
 } from "@/api/apiConfig";
 import {NewChatDto} from "@/lib/models/requests";
 import {ChatRoom} from "@/lib/models/models";
+import {DeletedChatRoomDto} from "@/lib/models/responses";
 
 const RESOURCE_PATH = API_VERSION_PATHING_V1 + "/chats";
 
@@ -30,7 +31,7 @@ export const getChatRoom = async (id: number): ApiResponseWrapperPromise<ChatRoo
     }
 }
 
-export const deleteChatRoom = async (id: number): ApiResponseWrapperPromise<ChatRoom, FailedAPIRequestResponse> => {
+export const deleteChatRoom = async (id: number): ApiResponseWrapperPromise<DeletedChatRoomDto, FailedAPIRequestResponse> => {
     try {
         const response = await apiClient.delete(RESOURCE_PATH + `/${id}`);
         return getSuccessfulResponse(response);
@@ -50,7 +51,7 @@ export const addMemberToChat = async (chatRoomId: number, username: string): Api
     }
 }
 
-export const removeMemberFromChat = async (chatRoomId: number, username: string) => {
+export const removeMemberFromChat = async (chatRoomId: number, username: string): ApiResponseWrapperPromise<ChatRoom, FailedAPIRequestResponse> => {
     try {
         const response = await apiClient.delete(RESOURCE_PATH + `/${chatRoomId}/members/${username}`);
         return getSuccessfulResponse(response);
@@ -60,7 +61,7 @@ export const removeMemberFromChat = async (chatRoomId: number, username: string)
     }
 }
 
-export const leaveChatRoom = async (chatRoomId: number) => {
+export const leaveChatRoom = async (chatRoomId: number): ApiResponseWrapperPromise<DeletedChatRoomDto, FailedAPIRequestResponse> => {
     try {
         const response = await apiClient.delete(RESOURCE_PATH + `/${chatRoomId}/members/me`);
         return getSuccessfulResponse(response);

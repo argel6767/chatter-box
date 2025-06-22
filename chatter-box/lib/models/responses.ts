@@ -8,6 +8,11 @@ export interface ChatRoomDto {
     name: string
 }
 
+export interface DeletedChatRoomDto {
+    message: string,
+    statusCode: number
+}
+
 export interface AuthDetails {
     id: number,
     isVerified: boolean,
