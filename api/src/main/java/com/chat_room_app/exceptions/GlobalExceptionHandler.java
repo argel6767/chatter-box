@@ -8,6 +8,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -66,6 +67,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<FailedAPIRequestResponse> handleMessagingException(MessagingException me, HttpServletRequest request) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new FailedAPIRequestResponse(me.getMessage(), request.getRequestURI()));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<FailedAPIRequestResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException me, HttpServletRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(new FailedAPIRequestResponse(me.getMessage(), request.getRequestURI()));
     }
 

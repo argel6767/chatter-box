@@ -6,7 +6,7 @@ import {
     ChatBubbleAvatar,
     ChatBubbleMessage
 } from "@/components/ui/chat/chat-bubble";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {Label} from "@/components/ui/label";
 import {CornerDownLeft, Edit, Paperclip, Trash} from "lucide-react";
 import {ChatInput} from "@/components/ui/chat/chat-input";
@@ -26,7 +26,7 @@ interface ChatInputWrapperProps {
 }
 
 const ChatInputWrapper = ({id}: ChatInputWrapperProps) => {
-    const {sendMessage} = useWebSocket(id);
+    const {sendMessage, connected} = useWebSocket(id);
     const [message, setMessage] = useState("");
 
 
@@ -67,6 +67,7 @@ const ChatInputWrapper = ({id}: ChatInputWrapperProps) => {
                 <Button
                     size="sm"
                     className="ml-auto gap-1.5"
+                    disabled={!connected}
                 >
                     Send Message
                     <CornerDownLeft className="size-3.5" />
@@ -152,42 +153,41 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
         }
     }, [chatRoom.data])
 
+    const handleMessage = useCallback(
+        (message: Message) => {
+            setChatRoomDetails((prev: ChatRoom) => ({
+                ...prev,
+                messages: [...prev.messages, message],
+            }));
+        },
+        []
+    );
+
+    const handleDelete = useCallback((messageId: number) => {
+        setChatRoomDetails((prev: ChatRoom) => ({
+            ...prev,
+            messages: prev.messages.filter((message) => message.id !== messageId),
+        }));
+    }, []);
+
+    const handleEdit = useCallback((editedMessage: Message) => {
+        setChatRoomDetails((prev: ChatRoom) => ({
+            ...prev,
+            messages: prev.messages.map((message) =>
+                message.id === editedMessage.id ? editedMessage : message
+            ),
+        }));
+    }, []);
+
     useEffect(() => {
         if (webSocket.connected && id) {
             webSocket.subscribeToRoom({
-                onMessage: (message: Message) => {
-                    console.log('New message received:', message);
-                    setChatRoomDetails((prev: ChatRoom) => {
-                        return {
-                            ...prev,
-                            messages: [...prev.messages, message as Message]
-                        }
-                    });
-                },
-
-                onDelete: (messageId: number) => {
-                    console.log('Message deleted:', messageId);
-                    setChatRoomDetails((prev: ChatRoom) => {
-                        return {
-                            ...prev,
-                            messages: prev.messages.filter(message => message.id !== messageId)
-                        }
-                    });
-                },
-
-                onEdit: (editedMessage: Message) => {
-                    console.log('Message edited:', editedMessage);
-                    setChatRoomDetails((prev: ChatRoom) => {
-                        return {
-                            ...prev,
-                            messages: prev.messages.map(message => message.id === editedMessage.id ? editedMessage : message)
-                        }
-                        }
-                    );
-                }
+                onMessage: handleMessage,
+                onDelete: handleDelete,
+                onEdit: handleEdit,
             });
         }
-    }, [webSocket, id,]);
+    }, [webSocket, id, handleMessage, handleDelete, handleEdit]);
 
     if (chatRoom.isLoading || !webSocket.connected) {
         return (

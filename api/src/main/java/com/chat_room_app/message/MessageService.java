@@ -29,17 +29,19 @@ public class MessageService {
     }
 
     public void sendMessage(NewMessageDto request, String username) {
-        ChatRoom chatRoom = chatRoomService.getChatRoomById(request.chatRoomId());
-        if (!chatRoomService.isAMember(username, chatRoom)) {
+        log.info("Processing new message by " + username);
+        if (!chatRoomService.isAMember(username, request.chatRoomId())) {
+            log.warning("Unauthorized user " + username + " attempted to send chat in ChatRoom " + request.chatRoomId());
             throw new UnAuthorized401Exception("User is not part of a chat: " + username);
         }
         Message message = new Message();
+        ChatRoom chatRoom = chatRoomService.getChatRoomById(request.chatRoomId());
         message.setChatRoom(chatRoom);
         message.setContent(request.content());
         message.setSender(username);
         Message savedMessage = messageRepository.save(message);
+        log.info("New message created: " + savedMessage.getId());
         MessageDto dto = toMessageDto(savedMessage);
-
         // Send to a dynamic topic based on chatId
         messagingTemplate.convertAndSend(
                 "/topic/chat." + request.chatRoomId(),
@@ -54,6 +56,7 @@ public class MessageService {
             throw new UnAuthorized401Exception("User is not the original author of message: " + username);
         }
         messageRepository.delete(message);
+        log.info("Message deleted: " + messageId);
         messagingTemplate.convertAndSend(
                 "/topic/chat." + message.getChatRoom().getId() + ".delete",
                 messageId
@@ -63,11 +66,13 @@ public class MessageService {
     public void editMessage(UpdateMessageDto request, String username) {
         Message message = getMessageById(request.messageId());
         if (!message.getSender().equals(username)) {
+            log.warning("Unauthorized user " + username + " attempted to delete a message not their own");
             throw new UnAuthorized401Exception("User is not the original author of message: " + username);
         }
         message.setContent(request.newContent());
         MessageDto dto = toMessageDto(message);
         messageRepository.save(message);
+        log.info("Message updated: " + request.messageId());
         messagingTemplate.convertAndSend(
                 "/topic/chat." + message.getChatRoom().getId() + ".edit",
                 dto

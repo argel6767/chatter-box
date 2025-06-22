@@ -1,4 +1,4 @@
-import {useQuery} from "@tanstack/react-query";
+import {QueryClient, useQuery} from "@tanstack/react-query";
 import {getChatRoom} from "@/api/chatroom";
 import {getUserProfile} from "@/api/user";
 
@@ -19,3 +19,12 @@ export const useGetUserProfile = (searchedUserId: number) => {
         }
     })
 }
+
+export const queryClient = new QueryClient({
+    defaultOptions: {
+        queries : {
+            refetchOnWindowFocus: false,
+            staleTime: 10 * 60 * 1000, //10 minutes
+        }
+    }
+})

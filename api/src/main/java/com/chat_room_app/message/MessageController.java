@@ -7,6 +7,7 @@ import com.chat_room_app.message.dtos.UpdateMessageDto;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 
 @Controller
@@ -19,20 +20,20 @@ public class MessageController {
     }
 
     @MessageMapping("/chat.sendMessage")
-    public void sendMessage(NewMessageDto request) {
-        String username = JwtUtils.getCurrentUserUsername();
+    public void sendMessage(NewMessageDto request, Principal principal) {
+        String username = principal.getName();
         messageService.sendMessage(request, username);
     }
 
     @MessageMapping("/chat.deleteMessage")
-    public void deleteMessage(DeleteMessageDto request) {
-        String username = JwtUtils.getCurrentUserUsername();
+    public void deleteMessage(DeleteMessageDto request, Principal principal) {
+        String username = principal.getName();
         messageService.deleteMessage(request.messageId(), username);
     }
 
     @MessageMapping("/chat.editMessage")
-    public void editMessage(UpdateMessageDto request) {
-        String username = JwtUtils.getCurrentUserUsername();
+    public void editMessage(UpdateMessageDto request, Principal principal) {
+        String username = principal.getName();
         messageService.editMessage(request, username);
     }
 

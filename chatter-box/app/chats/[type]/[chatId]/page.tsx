@@ -1,12 +1,15 @@
 import { ChatRoomList, DirectMessageList, Sidebar } from "../../components";
 import {ChatContainer} from "@/app/chats/[type]/[chatId]/components";
 
-export default function ChatPage({ 
-    params 
-  }: { 
-    params: { type: string; id: string } 
-  }) {
-    const { type, id } = params;
+type Props = {
+    params: { type: string; chatId: string }
+};
+
+export default async function ChatPage(props: Props) {
+    const { chatId } = await props.params;
+
+    // If you need to convert chatId to a number:
+    const numericChatId = Number(chatId);
     
     return (<div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
             <div className="flex h-screen">
@@ -22,7 +25,7 @@ export default function ChatPage({
             <DirectMessageList/>
           </section>
         </div>
-            <ChatContainer/>
+            <ChatContainer id={numericChatId}/>
         </div>
         </div>);
   }

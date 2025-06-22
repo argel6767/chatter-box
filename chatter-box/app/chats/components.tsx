@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { useSearchQueryStore } from "@/hooks/stores"
+import {useSearchQueryStore, useUserStore} from "@/hooks/stores"
 import { Badge, MessageCircle, Plus, Search, Settings, Users, Hash, Volume2, Lock } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -65,66 +65,11 @@ export const GoBackHome = () => {
 }
 
 export const ChatRoomList = () => {
-    const chatRooms = [
-        {
-          id: 1,
-          name: "General Discussion",
-          type: "public",
-          lastMessage: "Hey everyone! How's the project going?",
-          timestamp: "2 min ago",
-          unreadCount: 3,
-          members: 24,
-          icon: Hash,
-          isActive: true
-        },
-        {
-          id: 2,
-          name: "Development Team",
-          type: "private",
-          lastMessage: "The new feature is ready for testing",
-          timestamp: "5 min ago",
-          unreadCount: 1,
-          members: 8,
-          icon: Lock,
-          isActive: true
-        },
-        {
-          id: 3,
-          name: "Design Feedback",
-          type: "public",
-          lastMessage: "Love the new color scheme!",
-          timestamp: "1 hour ago",
-          unreadCount: 0,
-          members: 12,
-          icon: Hash,
-          isActive: false
-        },
-        {
-          id: 4,
-          name: "Random",
-          type: "public",
-          lastMessage: "Anyone up for lunch?",
-          timestamp: "2 hours ago",
-          unreadCount: 5,
-          members: 45,
-          icon: Hash,
-          isActive: false
-        },
-        {
-          id: 5,
-          name: "Music Corner",
-          type: "public",
-          lastMessage: "🎵 Check out this new playlist!",
-          timestamp: "3 hours ago",
-          unreadCount: 0,
-          members: 18,
-          icon: Volume2,
-          isActive: false
-        }
-      ];
+    const {user} = useUserStore();
+    const chatRooms = user.chatRooms;
     const router = useRouter();
-    //const [chatRooms, setChatRooms] = useState<any>([]);
-    const searchQuery:string = useSearchQueryStore((state) => state.searchQuery)
+    const searchQuery:string = useSearchQueryStore((state) => state.searchQuery);
+
 
     const filteredRooms = chatRooms.filter(room => 
         room.name.toLowerCase().includes(searchQuery)
@@ -154,26 +99,13 @@ export const ChatRoomList = () => {
                     <CardContent className="p-3">
                       <div className="flex items-center space-x-3">
                         <div className="relative">
-                          <room.icon className="h-5 w-5 text-gray-400" />
-                          {room.isActive && (
-                            <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></div>
-                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <p className="text-sm font-medium text-white truncate">{room.name}</p>
-                            {room.unreadCount > 0 && (
-                              <Badge className="bg-slate-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                                {room.unreadCount}
-                              </Badge>
-                            )}
                           </div>
-                          <p className="text-xs text-gray-400 truncate">{room.lastMessage}</p>
                           <div className="flex items-center justify-between mt-1">
-                            <span className="text-xs text-gray-500">{room.timestamp}</span>
                             <div className="flex items-center space-x-1 text-xs text-gray-500">
-                              <Users className="h-3 w-3" />
-                              <span>{room.members}</span>
                             </div>
                           </div>
                         </div>
@@ -188,44 +120,7 @@ export const ChatRoomList = () => {
 }
 
 export const DirectMessageList = () => {
-    const directMessages = [
-        {
-          id: 1,
-          name: "Sarah Johnson",
-          avatar: "/placeholder.svg",
-          lastMessage: "Thanks for the help with the presentation!",
-          timestamp: "10 min ago",
-          unreadCount: 2,
-          isOnline: true
-        },
-        {
-          id: 2,
-          name: "Mike Chen",
-          avatar: "/placeholder.svg",
-          lastMessage: "The deployment went smoothly 👍",
-          timestamp: "30 min ago",
-          unreadCount: 0,
-          isOnline: true
-        },
-        {
-          id: 3,
-          name: "Emily Davis",
-          avatar: "/placeholder.svg",
-          lastMessage: "Can we schedule a design review?",
-          timestamp: "1 hour ago",
-          unreadCount: 1,
-          isOnline: false
-        },
-        {
-          id: 4,
-          name: "Alex Rodriguez",
-          avatar: "/placeholder.svg",
-          lastMessage: "Great work on the latest update!",
-          timestamp: "2 hours ago",
-          unreadCount: 0,
-          isOnline: false
-        }
-      ];
+    const directMessages = []
 
     const router = useRouter();
    // const [directMessages, setDirectMessages] = useState<any>([]);

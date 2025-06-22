@@ -61,8 +61,8 @@ public class ChatRoomService {
         return createChatRoomDto(chatRoom);
     }
 
-    public boolean isAMember(String username, ChatRoom chatRoom) {
-        return isAMember(username, chatRoom.getMembers());
+    public boolean isAMember(String username, Long chatRoomId) {
+        return chatRoomRepository.existsByIdAndMembersUsername(chatRoomId, username);
     }
 
     private boolean isAMember(String username, Set<User> members) {

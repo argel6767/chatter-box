@@ -1,4 +1,10 @@
-import {API_VERSION_PATHING_V1, apiClient, getFailedResponse, getSuccessfulResponse} from "@/api/apiConfig";
+import {
+    API_VERSION_PATHING_V1,
+    apiClient, ApiResponseWrapper,
+    FailedAPIRequestResponse,
+    getFailedResponse,
+    getSuccessfulResponse
+} from "@/api/apiConfig";
 import {
     AuthenticateUserDto,
     ChangePasswordDto,
@@ -6,10 +12,12 @@ import {
     RegisterUserDto,
     VerifyUserDto
 } from "@/lib/models/requests";
+import {User} from "@/lib/models/models";
+import {EmailSentSuccessfullyDto} from "@/lib/models/responses";
 
 const RESOURCE_PATH = API_VERSION_PATHING_V1 + "/auths"
 
-export const register = async (request:RegisterUserDto) => {
+export const register = async (request:RegisterUserDto): Promise<ApiResponseWrapper<User | FailedAPIRequestResponse>> => {
     try {
         const response = await apiClient.post(RESOURCE_PATH + "/register", request);
         return getSuccessfulResponse(response);
@@ -19,7 +27,7 @@ export const register = async (request:RegisterUserDto) => {
     }
 }
 
-export const login = async (request:AuthenticateUserDto) => {
+export const login = async (request:AuthenticateUserDto): Promise<ApiResponseWrapper<User | FailedAPIRequestResponse>> => {
     try {
         const response = await apiClient.post(RESOURCE_PATH + "/login", request);
         return getSuccessfulResponse(response);
@@ -29,7 +37,7 @@ export const login = async (request:AuthenticateUserDto) => {
     }
 }
 
-export const verify = async (request:VerifyUserDto) => {
+export const verify = async (request:VerifyUserDto): Promise<ApiResponseWrapper<string | FailedAPIRequestResponse>> => {
     try {
         const response = await apiClient.post(RESOURCE_PATH + "/verify", request);
         return getSuccessfulResponse(response);
@@ -39,7 +47,7 @@ export const verify = async (request:VerifyUserDto) => {
     }
 }
 
-export const logout = async () => {
+export const logout = async (): Promise<ApiResponseWrapper<void | FailedAPIRequestResponse>> => {
     try {
         const response =  await apiClient.post(RESOURCE_PATH + "/logout");
         return getSuccessfulResponse(response);
@@ -49,7 +57,7 @@ export const logout = async () => {
     }
 }
 
-export const changePassword = async (request: ChangePasswordDto) => {
+export const changePassword = async (request: ChangePasswordDto): Promise<ApiResponseWrapper<User | FailedAPIRequestResponse>> => {
     try {
         const response = await apiClient.put(RESOURCE_PATH+ "/password", request);
         return getSuccessfulResponse(response);
@@ -59,7 +67,7 @@ export const changePassword = async (request: ChangePasswordDto) => {
     }
 }
 
-export const resendVerificationCode = async (username: string) => {
+export const resendVerificationCode = async (username: string): Promise<ApiResponseWrapper<EmailSentSuccessfullyDto | FailedAPIRequestResponse>> => {
     try {
         const response = await apiClient.post(RESOURCE_PATH + `/resend/${username}`);
         return getSuccessfulResponse(response);
@@ -69,7 +77,7 @@ export const resendVerificationCode = async (username: string) => {
     }
 }
 
-export const forgotPassword = async (username: string) => {
+export const forgotPassword = async (username: string): Promise<ApiResponseWrapper<EmailSentSuccessfullyDto | FailedAPIRequestResponse>> => {
     try {
         const response = await apiClient.post(RESOURCE_PATH + `/forgot/${username}`);
         return getSuccessfulResponse(response);
@@ -79,7 +87,7 @@ export const forgotPassword = async (username: string) => {
     }
 }
 
-export const resetPassword = async (request: ForgetPasswordDto) => {
+export const resetPassword = async (request: ForgetPasswordDto): Promise<ApiResponseWrapper<User | FailedAPIRequestResponse>> => {
     try {
         const response = await apiClient.put(RESOURCE_PATH + "/reset", request);
         return getSuccessfulResponse(response);

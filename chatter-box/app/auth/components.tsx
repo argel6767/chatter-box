@@ -6,6 +6,12 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft, Eye, EyeOff, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import {AuthenticateUserDto} from "@/lib/models/requests";
+import {login} from "@/api/auths";
+import {FailedAPIRequestResponse, ApiResponseWrapper} from "@/api/apiConfig";
+import {User} from "@/lib/models/models"
+import {sleep} from "@/lib/utils";
+import {useUserStore} from "@/hooks/stores";
 
 export const SignUp = () => {
     const router = useRouter();
@@ -124,14 +130,28 @@ export const SignUp = () => {
 export const Login = () => {
 
     const router = useRouter();
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<AuthenticateUserDto>({
         username:"",
         password: "",
       });
+    const {setUser} = useUserStore();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [failedLogin, setFailedLogin] = useState({isFailed: false, message: ""});
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        router.push("/chats")
+        const response = await login(formData);
+        if ('errorMessage' in response.data) {
+            const errorMessage = response.data.errorMessage;
+            setFailedLogin({isFailed: true, message: errorMessage});
+            await sleep(2500);
+            setFailedLogin({isFailed: false, message: ""});
+        }
+        else {
+            const userData = response.data;
+            setUser(userData);
+            router.push("/chats");
+        }
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,6 +163,23 @@ export const Login = () => {
 
       const isFieldsFilled = () => {
         return !(formData.username.length > 0 && formData.password.length > 0);
+      }
+
+      if (failedLogin.isFailed) {
+          return  (
+              <main className="motion-preset-pop motion-duration-700">
+                  <Card className="bg-black/20 backdrop-blur-sm border-white/10">
+                  <CardHeader>
+                    <CardTitle className="text-white text-center">
+                      Login Failed
+                    </CardTitle>
+                    <CardDescription className="text-gray-400 text-center">
+                       {failedLogin.message}
+                    </CardDescription>
+                  </CardHeader>
+                  </Card>
+              </main>
+          )
       }
     
     return (

@@ -1,7 +1,7 @@
 // hooks/useWebSocket.js
 import { useEffect, useState, useCallback } from 'react';
 import WebSocketService from '../web_socket/web-socket-service';
-import {NewMessageDto, UpdateMessageDto} from "@/lib/models/requests";
+import { UpdateMessageDto} from "@/lib/models/requests";
 
 export const useWebSocket = (chatRoomId: number) => {
     const [connected, setConnected] = useState(false);
