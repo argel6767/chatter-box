@@ -7,6 +7,7 @@ import com.chat_room_app.friends.dtos.FriendshipDto;
 import com.chat_room_app.users.User;
 import com.chat_room_app.users.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.java.Log;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Log
 public class FriendshipService {
 
     private final FriendshipRepository friendshipRepository;
@@ -33,10 +35,12 @@ public class FriendshipService {
      */
     public FriendshipDto requestFriendship(Long userId, Long potentialFriendId) {
         if (userId.equals(potentialFriendId)) {
+            log.warning("User attempted to friend their self: " + userId);
             throw new Conflict409Exception("Cannot send friend request to yourself");
         }
 
         if (friendshipExists(userId, potentialFriendId)) {
+            log.warning("Friendship is already made");
             throw new Conflict409Exception("Friendship already exists");
         }
 
@@ -49,6 +53,7 @@ public class FriendshipService {
         friendship.setStatus(FriendStatus.PENDING);
 
         Friendship saved = friendshipRepository.save(friendship);
+        log.info("New friend request created between " + user.getUsername() + " and " + potentialFriend.getUsername());
         return createFriendshipDto(saved.getId(), user, potentialFriend, saved.getStatus());
     }
 
@@ -71,6 +76,7 @@ public class FriendshipService {
      */
     public void removeFriendship(Long friendshipId) {
         Friendship friendship = findFriendshipById(friendshipId);
+        log.info("Removing friendship: " + friendshipId);
         friendshipRepository.delete(friendship);
     }
 
@@ -107,6 +113,7 @@ public class FriendshipService {
      */
     public Set<FriendshipDto> getAllFriends(Long userId) {
         User currentUser = findUserById(userId);
+        log.info("Fetching all friends of " + currentUser.getUsername());
         Set<FriendshipDto> friends = new HashSet<>();
 
         // Friends where current user is the requester

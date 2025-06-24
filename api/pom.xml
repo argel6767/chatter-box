@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>messaging-stomp-websocket-complete</artifactId>
+	<artifactId>chatter-box-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>chat-room-app</name>
-	<description>Chat Room Backend Application</description>
+	<description>ChatterBox API</description>
 	<properties>
 		<java.version>21</java.version>
 	</properties>

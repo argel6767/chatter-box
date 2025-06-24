@@ -282,6 +282,7 @@ class AuthControllerTest {
         auth.setVerificationCode("123456");
         auth.setCodeExpiryTime(LocalDateTime.now().plusMinutes(10));
         user.setAuthDetails(auth);
+        auth.setAuthorities("ROLE_USER");
         userRepository.save(user);
 
         VerifyUserDto body = new VerifyUserDto("john@mail.com", "username","123456");
@@ -310,6 +311,7 @@ class AuthControllerTest {
         
         auth.setIsVerified(true);
         user.setAuthDetails(auth);
+        auth.setAuthorities("ROLE_USER");
         userRepository.save(user);
 
         VerifyUserDto body = new VerifyUserDto("john@mail.com", "username", "123456");
@@ -332,6 +334,7 @@ class AuthControllerTest {
         auth.setVerificationCode("123456");
         auth.setCodeExpiryTime(LocalDateTime.now().minusMinutes(10));
         user.setAuthDetails(auth);
+        auth.setAuthorities("ROLE_USER");
         userRepository.save(user);
 
         VerifyUserDto body = new VerifyUserDto("john@mail.com", "username","123456");
@@ -362,6 +365,7 @@ class AuthControllerTest {
         auth.setVerificationCode("123456");
         auth.setCodeExpiryTime(LocalDateTime.now().plusMinutes(10));
         user.setAuthDetails(auth);
+        auth.setAuthorities("ROLE_USER");
         userRepository.save(user);
 
         VerifyUserDto body = new VerifyUserDto("john@mail.com", "username","111111");
@@ -400,6 +404,7 @@ class AuthControllerTest {
             AuthDetails auth = new AuthDetails();
             
             auth.setIsVerified(true);
+            auth.setAuthorities("ROLE_USER");
             user.setAuthDetails(auth);
             userRepository.save(user);
 

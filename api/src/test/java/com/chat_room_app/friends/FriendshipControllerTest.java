@@ -398,7 +398,7 @@ class FriendshipControllerTest {
             jwtUtilsMock.when(JwtUtils::getCurrentUserId).thenReturn(john.getId());
 
             mockMvc
-                    .perform(get("/api/v1/friends/friends"))
+                    .perform(get("/api/v1/friends"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(2)))
                     .andExpect(jsonPath("$[*].status").value(org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is("ACCEPTED"))));

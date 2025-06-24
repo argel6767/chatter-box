@@ -6,6 +6,9 @@ import com.chat_room_app.friends.FriendStatus;
 import com.chat_room_app.friends.Friendship;
 import com.chat_room_app.friends.dtos.FriendIdAndNameDto;
 import com.chat_room_app.users.dtos.UserProfileDto;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -14,7 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
@@ -81,5 +84,10 @@ public class UserService {
                 .forEach(friends::add);
 
         return friends;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return getUserByUsername(username);
     }
 }
