@@ -40,7 +40,7 @@ public class ChatRoomService {
         List<User> users = userRepository.findAllByUsernameIn(request.usernames());
         chatRoom.getMembers().addAll(users);
         users.forEach(user -> user.getChatRooms().add(chatRoom));
-        if (request.name() != null) {
+        if (request.name() != null || !(request.name().isEmpty())) {
             chatRoom.setName(request.name());
         }
         log.info("New Chat Room created by user: " + creatorUsername);
