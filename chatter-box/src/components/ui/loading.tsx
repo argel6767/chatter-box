@@ -2,8 +2,10 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
+type Size = "sm" | "default" | "lg" | "xl"
+
 interface LoadingSpinnerProps {
-    size?: "sm" | "default" | "lg" | "xl";
+    size?: Size;
     className?: string;
 }
 
@@ -30,7 +32,7 @@ export const LoadingSpinner = ({ className, size = "default", ...props }: Loadin
 
 interface LoadingProps {
     variant?: "spinner" | "dots" | "pulse" | "default";
-    size?: "sm" | "default" | "lg" | "xl";
+    size?: Size;
     text?: string;
     className?: string;
 }
@@ -77,17 +79,18 @@ interface LoadingOverlayProps {
     isLoading: boolean;
     children?: React.ReactNode;
     text?: string;
+    size: Size
 }
 
 // Page-level loading overlay
-export const LoadingOverlay = ({ isLoading, children, text = "Loading..." }: LoadingOverlayProps) => {
+export const LoadingOverlay = ({ isLoading, children, text, size}: LoadingOverlayProps) => {
     if (!isLoading) return children;
 
     return (
         <div className="relative">
             {children && <div className="opacity-50 pointer-events-none">{children}</div>}
             <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-                <Loading text={text} size="lg" />
+                <Loading text={text} size={size} />
             </div>
         </div>
     );

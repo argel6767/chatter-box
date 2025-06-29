@@ -45,7 +45,7 @@ export const blockUser = async (friendId: number): Promise<ApiResponseWrapper<Fr
 
 export const getFriends = async (): Promise<ApiResponseWrapper<FriendshipDto[] | FailedAPIRequestResponse>> => {
     try {
-        const response = await apiClient.get(RESOURCE_PATH + "/friends");
+        const response = await apiClient.get(RESOURCE_PATH);
         return getSuccessfulResponse(response);
     }
     catch (error) {

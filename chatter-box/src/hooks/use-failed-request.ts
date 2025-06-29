@@ -10,3 +10,8 @@ export const useFailedRequest = () => {
 
     return {failedRequest, updateFailedRequest, resetFailedRequest}
 }
+
+export interface FailedRequest {
+    isFailed: boolean,
+    message: string
+}

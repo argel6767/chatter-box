@@ -1,23 +1,24 @@
 'use client'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle,DialogTrigger,} from "@/components/ui/dialog"
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogTrigger,} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/chat/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {useFriendStore, useSearchQueryStore, useUserStore} from "@/hooks/stores"
-import { Badge, MessageCircle, Plus, Search, Settings } from "lucide-react"
+import { Badge, MessageCircle, Plus, Search, Settings, Users } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { NewChatDto } from "@/lib/models/requests"
-import { useFailedRequest } from "@/hooks/use-failed-request"
+import { FailedRequest, useFailedRequest } from "@/hooks/use-failed-request"
 import { useToggle } from "@/hooks/use-toggle"
-import { DialogPortal } from "@radix-ui/react-dialog"
 import { Label } from "@/components/ui/label"
 import { useGetFriendRequests, useGetFriends } from "@/hooks/react-query"
 import { isFailedResponse } from "@/lib/utils"
 import { FriendshipDto } from "@/lib/models/responses"
+import { Loading } from "@/components/ui/loading"
+import { ChatBubbleAvatar } from "@/components/ui/chat/chat-bubble"
 
 
 const DropDownSettings = () => {
@@ -37,38 +38,99 @@ const DropDownSettings = () => {
     )
 }
 
-const 
+interface FriendContainerProps {
+  isLoading: boolean
+  friends: FriendshipDto[]
+  failedRequest: FailedRequest
+}
+
+const FriendContainer = ({isLoading, friends, failedRequest}: FriendContainerProps) => {
+
+  if (failedRequest.isFailed) {
+    return (
+      <main className="size-full p-4">
+        <p className="text-red-400">{failedRequest.message}</p>
+      </main>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="size-full py-2">
+        <Loading/>
+      </div>
+    )
+  }
+  
+  return (
+    <ul>
+      {friends.map((friendship) => {
+          const friend = friendship.friend;
+          const fallBack = friend.username.substring(0,1).toUpperCase();
+        return (
+          <li className="flex justify-around items-center gap-3 p-4 hover:bg-slate-700 hover:cursor-pointer rounded-lg" key={friend.id}>
+            <ChatBubbleAvatar className="bg-slate-200 text-black" fallback={fallBack}/>
+            <p>{friend.username}</p>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
 
 const FriendsDropDown = () => {
   const {user} = useUserStore();
   const friendsQuery = useGetFriends(user.id);
   const requestsQuery = useGetFriendRequests(user.id);
   const {friends, setFriends} = useFriendStore();
-  const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest()
+  const [friendRequests, setFriendRequests] = useState<FriendshipDto[]>([]);
+  const failedFriendsQuery = useFailedRequest();
+  const failedRequestsQuery = useFailedRequest();
 
   useEffect(() => {
-    const data = friendsQuery.data!;
-    if (data && !isFailedResponse(data)) {
-      const friendData: FriendshipDto[] = data.data as FriendshipDto[];
-      setFriends(friendData);
+    const data = friendsQuery.data;
+    if (data) {
+      if (!isFailedResponse(data)) {
+        const friendData: FriendshipDto[] = data.data as FriendshipDto[];
+        setFriends(friendData);
+      }
+      else {
+        failedFriendsQuery.updateFailedRequest(true, "Could not fetch friends!")
+      }
     }
-    else {
-      
+    
+  }, [friendsQuery.data, setFriends])
+
+  useEffect(() => {
+    const data = requestsQuery.data;
+    if (data) {
+      if (!isFailedResponse(data)) {
+        const friendData: FriendshipDto[] = data.data as FriendshipDto[];
+        setFriendRequests(friendData);
+      }
+      else {
+        failedRequestsQuery.updateFailedRequest(true, "Could not fetch friend requests!")
+      }
     }
-  }, [friendsQuery, setFriends])
+    
+  }, [requestsQuery.data])
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <Settings className="h-6 w-6 text-gray-400 hover:text-slate-300 hover:bg-white/10 rounded-full " />
+        <Users className="h-6 w-6 text-gray-400 hover:text-slate-300 hover:bg-white/10 rounded-full " />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 text-slate-200">
-        <DropdownMenuLabel>Friend Requests</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {}
-        <DropdownMenuLabel>Friends</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {}
+      <DropdownMenuContent className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 text-slate-200 flex flex-col gap-2 ">
+        <section>
+          <DropdownMenuLabel className="text-lg">Friend Requests</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <FriendContainer isLoading={requestsQuery.isFetching} friends={friendRequests} failedRequest={failedRequestsQuery.failedRequest}/>
+        </section>
+        <section>
+          <DropdownMenuLabel className="text-lg">Friends</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <FriendContainer isLoading={friendsQuery.isFetching} friends={friends} failedRequest={failedFriendsQuery.failedRequest}/>
+        </section>
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -87,7 +149,10 @@ export const Header = () => {
                 <MessageCircle className="h-7 w-7 text-slate-400" />
                 <Link className="text-2xl font-semibold text-slate-200 hover:underline hover:underline-offset-8" href={"/chats"}>ChatterBox</Link>
               </div>
-              <DropDownSettings/>
+              <nav className="flex justify-end gap-2">
+                <FriendsDropDown/>
+                <DropDownSettings/>
+              </nav>
             </div>
             
             {/* Search */}
