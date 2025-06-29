@@ -14,11 +14,11 @@ import {Button} from "@/components/ui/button";
 import {ChatRoom, Message} from "@/lib/models/models"
 import {useWebSocket} from "@/hooks/use-web-socket";
 import {useGetChatRoom} from "@/hooks/react-query";
-import {ApiResponseWrapper, FailedAPIRequestResponse} from "@/api/apiConfig";
 import {useUserStore} from "@/hooks/stores";
 import {AnnouncementMessage} from "@/components/ui/annoucementMessage";
 import {LoadingSpinner} from "@/components/ui/loading";
 import {useRouter} from "next/navigation";
+import { isFailedResponse } from "@/lib/utils";
 
 type Variant = "received" | "sent";
 
@@ -152,9 +152,6 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
     useEffect(() => {
         if (chatRoom.data) {
             const data = chatRoom.data;
-            const isFailedResponse = (response: ApiResponseWrapper<ChatRoom | FailedAPIRequestResponse>): response is ApiResponseWrapper<FailedAPIRequestResponse> => {
-                return response.statusCode !== 200;
-            }
 
             if (isFailedResponse(data)) {
                 setIsFailed(true);
@@ -269,25 +266,29 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
     }
 
     return (
-        <main className={"flex flex-col items-center justify-center bg-black/10 w-full pt-2 pb-4"}>
-            <h1 className={"text-4xl font-bold text-slate-200 pt-2"}>{chatRoomDetails.name}</h1>
-            <ChatMessageList>
-                {chatRoomDetails.messages.map((message) => {
-                    const variant: Variant = message.author === user.username ? "sent" : "received";
-                    return (
-                        <ChatMessage
-                            key={message.id}
-                            variant={variant}
-                            content={message.content}
-                            author={message.author}
-                            timeSent={message.timeSent}
-                            onDelete={variant === "sent" ? () => handleDeleteMessage(message.id) : undefined}
-                            onEdit={variant === "sent" ? () => handleEditMessage(message.id) : undefined}
-                        />
-                    );
-                })}
-            </ChatMessageList>
-            <ChatInputWrapper id={id}/>
+        <main className={"flex flex-col items-center justify-center bg-black/10 w-full pt-2 pb-4 max-h-screen"}>
+                <h1 className={"text-5xl font-bold text-slate-200 pt-2"}>{chatRoomDetails.name}</h1>
+                <div className="max-h-5/6 overflow-y-scroll w-full py-2">
+                <ChatMessageList>
+                    {chatRoomDetails.messages.map((message) => {
+                        const variant: Variant = message.author === user.username ? "sent" : "received";
+                        return (
+                            <ChatMessage
+                                key={message.id}
+                                variant={variant}
+                                content={message.content}
+                                author={message.author}
+                                timeSent={message.timeSent}
+                                onDelete={variant === "sent" ? () => handleDeleteMessage(message.id) : undefined}
+                                onEdit={variant === "sent" ? () => handleEditMessage(message.id) : undefined}
+                            />
+                        );
+                    })}
+                </ChatMessageList>
+            </div>
+            <span className="max-h-1/6">
+                <ChatInputWrapper id={id}/>
+            </span>
         </main>
     );
 };

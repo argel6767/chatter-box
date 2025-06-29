@@ -5,6 +5,16 @@ import {EmailSentSuccessfullyDto} from "@/lib/models/responses";
 
 const RESOURCE_PATH = API_VERSION_PATHING_V1 + "/auths"
 
+export const checkCookie = async(): Promise<ApiResponseWrapper<string | FailedAPIRequestResponse>> => {
+    try {
+        const response = await apiClient.post(RESOURCE_PATH + "/cookie-status");
+        return getSuccessfulResponse(response);
+    }
+    catch(error) {
+        return getFailedResponse(error);
+    }
+}
+
 export const register = async (request:RegisterUserDto): Promise<ApiResponseWrapper<User | FailedAPIRequestResponse>> => {
     try {
         const response = await apiClient.post(RESOURCE_PATH + "/register", request);

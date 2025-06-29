@@ -12,6 +12,7 @@ import {sleep} from "@/lib/utils";
 import {useLoadingStore, useUserStore} from "@/hooks/stores";
 import { LoadingSpinner} from "@/components/ui/loading";
 import { AnnouncementMessage } from "@/components/ui/annoucementMessage"
+import { useToggle } from "@/hooks/use-toggle"
 
 export const SignUp = () => {
     const [formData, setFormData] = useState({
@@ -23,7 +24,7 @@ export const SignUp = () => {
     const [failedSignUp, setFailedSignUp] = useState({isFailed: false, message: ""});
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [isRegistered, setIsRegistered] = useState(false);
-    const {loading, toggleLoading} = useLoadingStore();
+    const {value:loading, toggleValue} = useToggle(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
@@ -34,9 +35,9 @@ export const SignUp = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        toggleLoading();
+        toggleValue();
         const response = await register(formData);
-        toggleLoading();
+        toggleValue();
         if ('errorMessage' in response.data) {
             const errorMessage = response.data.errorMessage;
             setFailedSignUp({isFailed: true, message: errorMessage});
@@ -132,15 +133,15 @@ export const Login = () => {
     const {setUser} = useUserStore();
 
     const [failedLogin, setFailedLogin] = useState({isFailed: false, message: ""});
-    const {loading, toggleLoading} = useLoadingStore();
+    const {value: isLoading, toggleValue} = useToggle(false);
 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        toggleLoading();
+        toggleValue();
         const response = await login(formData);
         if ('errorMessage' in response.data) {
-            toggleLoading();
+            toggleValue();
             const errorMessage = response.data.errorMessage;
             setFailedLogin({isFailed: true, message: errorMessage});
             await sleep(2500);
@@ -152,7 +153,6 @@ export const Login = () => {
             localStorage.setItem("user", JSON.stringify(userData));
             setUser(userData);
             router.push("/chats");
-            toggleLoading();
         }
     }
 
@@ -174,7 +174,7 @@ export const Login = () => {
           )
       }
 
-      if (loading) {
+      if (isLoading) {
           return (
               <AnnouncementMessage title={"Logging you in..."}>
                 <LoadingSpinner  size={"lg"}/>

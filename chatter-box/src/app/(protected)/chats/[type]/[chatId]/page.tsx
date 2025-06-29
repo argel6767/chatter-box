@@ -1,5 +1,5 @@
 import { ChatRoomList, DirectMessageList, Header } from "../../components";
-import {ChatContainer} from "@/app/chats/[type]/[chatId]/components";
+import {ChatContainer} from "@/app/(protected)/chats/[type]/[chatId]/components";
 
 type Props = {
     params: { type: string; chatId: string }

@@ -1,7 +1,6 @@
 'use client'
 import { MessageCircle } from "lucide-react"
 import Link from "next/link"
-import {ChatRoomList, DirectMessageList, Header} from "@/app/chats/components";
 
 
 export const Navbar = () => {
