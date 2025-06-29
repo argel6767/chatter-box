@@ -1,6 +1,7 @@
 import {AuthDetails, ChatRoomDto, ChatRoomUserDto} from "@/lib/models/responses";
 
 export interface User {
+    id: number,
     email: string,
     username: string,
     chatRooms: ChatRoomDto[],

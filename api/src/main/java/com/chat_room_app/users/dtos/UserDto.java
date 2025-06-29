@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class UserDto {
 
+    Long id;
     String email;
     String username;
     Set<ChatRoomIdAndNameDto> chatRooms;
@@ -30,6 +31,6 @@ public class UserDto {
         AuthDetails authDetails = user.getAuthDetails();
         List<String> roles = Arrays.stream(authDetails.getAuthorities().split(",")).toList();
         AuthDto authDto = new AuthDto(authDetails.getId(), authDetails.getIsVerified(), roles);
-        return new UserDto(user.getEmail(), user.getUsername(), chatRooms, authDto);
+        return new UserDto(user.getId(),user.getEmail(), user.getUsername(), chatRooms, authDto);
     }
 }

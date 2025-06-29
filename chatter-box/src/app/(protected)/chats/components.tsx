@@ -5,13 +5,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/chat/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import {useSearchQueryStore, useUserStore} from "@/hooks/stores"
+import {useFriendStore, useSearchQueryStore, useUserStore} from "@/hooks/stores"
 import { Badge, MessageCircle, Plus, Search, Settings } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { NewChatDto } from "@/lib/models/requests"
+import { useFailedRequest } from "@/hooks/use-failed-request"
+import { useToggle } from "@/hooks/use-toggle"
+import { DialogPortal } from "@radix-ui/react-dialog"
+import { Label } from "@/components/ui/label"
+import { useGetFriendRequests, useGetFriends } from "@/hooks/react-query"
+import { isFailedResponse } from "@/lib/utils"
+import { FriendshipDto } from "@/lib/models/responses"
 
 
 const DropDownSettings = () => {
@@ -29,6 +35,43 @@ const DropDownSettings = () => {
         </DropdownMenuContent>
     </DropdownMenu>
     )
+}
+
+const 
+
+const FriendsDropDown = () => {
+  const {user} = useUserStore();
+  const friendsQuery = useGetFriends(user.id);
+  const requestsQuery = useGetFriendRequests(user.id);
+  const {friends, setFriends} = useFriendStore();
+  const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest()
+
+  useEffect(() => {
+    const data = friendsQuery.data!;
+    if (data && !isFailedResponse(data)) {
+      const friendData: FriendshipDto[] = data.data as FriendshipDto[];
+      setFriends(friendData);
+    }
+    else {
+      
+    }
+  }, [friendsQuery, setFriends])
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <Settings className="h-6 w-6 text-gray-400 hover:text-slate-300 hover:bg-white/10 rounded-full " />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 text-slate-200">
+        <DropdownMenuLabel>Friend Requests</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {}
+        <DropdownMenuLabel>Friends</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
 }
 
 export const Header = () => {
@@ -58,7 +101,7 @@ export const Header = () => {
               />
             </div>
           </div>
-          </main> 
+          </main>
     )
 }
 
@@ -85,24 +128,61 @@ export const GoBackHome = () => {
     )
 }
 
+const MemberList = () => {
+  const {user} = useUserStore();
+  
+}
+
 const NewChatSheet = () => {
   const {user} = useUserStore();
   const [formData, setFormData] = useState<NewChatDto>(
     {name:"",
     usernames: [user.username]}
   )
+  const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
+  const {value: isLoading, toggleValue:toggleLoading} = useToggle(false);
+
+  const handleName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      name: e.target.value
+    }))
+  }
+
+  const addMember = (user: string) => {
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      usernames: [...prevFormData.usernames, user]
+    }))
+  }
+
+  const removeMember = (user: string) => {
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      usernames: prevFormData.usernames.filter(username => username !== user)
+    }))
+  }
+
+  const createNewChat = async() => {
+
+  }
+
   return (
       <Dialog>
         <DialogTrigger>
           <Plus className="h-6 w-6 text-gray-400 rounded-full hover:slate-300 hover:cursor-pointer" />
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-center">Create New Chat</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. This will permanently delete your account
-              and remove your data from our servers.
-            </DialogDescription>
+            <DialogTitle className="text-center py-2 text-xl">Create New Chat</DialogTitle>
+            <form onSubmit={createNewChat} className="flex flex-col justify-center gap-4">
+              <span className="flex flex-col justify-center gap-2">
+                <Label htmlFor="name">Name your chat (optional)</Label>
+                <Input id="name" name="name" value={formData.name} onChange={handleName} placeholder="Coolest chat ever"/>
+              </span>
+              <Button type="submit">Create Chat</Button>
+            </form>
+            
           </DialogHeader>
         </DialogContent>
       </Dialog>

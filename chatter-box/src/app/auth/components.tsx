@@ -13,6 +13,7 @@ import {useLoadingStore, useUserStore} from "@/hooks/stores";
 import { LoadingSpinner} from "@/components/ui/loading";
 import { AnnouncementMessage } from "@/components/ui/annoucementMessage"
 import { useToggle } from "@/hooks/use-toggle"
+import { useFailedRequest } from "@/hooks/use-failed-request"
 
 export const SignUp = () => {
     const [formData, setFormData] = useState({
@@ -21,7 +22,7 @@ export const SignUp = () => {
         password: "",
     });
 
-    const [failedSignUp, setFailedSignUp] = useState({isFailed: false, message: ""});
+    const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [isRegistered, setIsRegistered] = useState(false);
     const {value:loading, toggleValue} = useToggle(false);
@@ -40,10 +41,10 @@ export const SignUp = () => {
         toggleValue();
         if ('errorMessage' in response.data) {
             const errorMessage = response.data.errorMessage;
-            setFailedSignUp({isFailed: true, message: errorMessage});
+            updateFailedRequest(true, errorMessage)
             await sleep(2500);
             setFormData({email: "", username:"", password: ""});
-            setFailedSignUp({isFailed: false, message: ""});
+            resetFailedRequest();
         }
         else {
             setIsRegistered(true);
@@ -54,8 +55,8 @@ export const SignUp = () => {
         return !(formData.email.length > 0 && formData.username.length > 0 && formData.password.length > 0)
       }
 
-      if (failedSignUp.isFailed) {
-          return <AnnouncementMessage message={failedSignUp.message} title={"Oops! Something went wrong"}/>
+      if (failedRequest.isFailed) {
+          return <AnnouncementMessage message={failedRequest.message} title={"Oops! Something went wrong"}/>
       }
 
       if (isRegistered) {
@@ -131,8 +132,7 @@ export const Login = () => {
         password: "",
       });
     const {setUser} = useUserStore();
-
-    const [failedLogin, setFailedLogin] = useState({isFailed: false, message: ""});
+    const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
     const {value: isLoading, toggleValue} = useToggle(false);
 
 
@@ -143,10 +143,10 @@ export const Login = () => {
         if ('errorMessage' in response.data) {
             toggleValue();
             const errorMessage = response.data.errorMessage;
-            setFailedLogin({isFailed: true, message: errorMessage});
+            updateFailedRequest(true, errorMessage);
             await sleep(2500);
             setFormData({username:"", password: ""});
-            setFailedLogin({isFailed: false, message: ""});
+            resetFailedRequest();
         }
         else {
             const userData = response.data;
@@ -168,9 +168,9 @@ export const Login = () => {
         return !(formData.username.length > 0 && formData.password.length > 0);
       }
 
-      if (failedLogin.isFailed) {
+      if (failedRequest.isFailed) {
           return  (
-              <AnnouncementMessage title={"Something went wrong!"} message={failedLogin.message}/>
+              <AnnouncementMessage title={"Something went wrong!"} message={failedRequest.message}/>
           )
       }
 

@@ -24,3 +24,15 @@ export interface EmailSentSuccessfullyDto {
     successMessage: string
 }
 
+export interface FriendIdAndNameDto {
+    id: number,
+    username: string
+}
+
+export interface FriendshipDto {
+    id: number,
+    user: FriendIdAndNameDto,
+    friend: FriendIdAndNameDto,
+    status: "ACCEPTED" | "PENDING" | "BLOCKED"
+}
+
