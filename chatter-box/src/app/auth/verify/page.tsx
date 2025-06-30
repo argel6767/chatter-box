@@ -28,13 +28,14 @@ interface VerifyDtoProps {
 }
 
 interface VerifyProps {
-    searchParams: VerifyDtoProps;
+    searchParams: Promise<VerifyDtoProps>;
 }
 
 const Verify = async ({searchParams}:VerifyProps) => {
-    const email = searchParams.email;
-    const username = searchParams.username;
-    const code = searchParams.code;
+    const params = await searchParams;
+    const email = params.email;
+    const username = params.username;
+    const code = params.code;
 
     const response: VerifyResponse = await verifyUser(email, username, code);
 

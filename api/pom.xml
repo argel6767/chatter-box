@@ -8,7 +8,7 @@
 		<version>3.3.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
+	<groupId>com.chat_room_app</groupId>
 	<artifactId>chatter-box-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>chat-room-app</name>
@@ -103,9 +103,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<mainClass>com.chat_room_app.ChatRoomApplication</mainClass>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
