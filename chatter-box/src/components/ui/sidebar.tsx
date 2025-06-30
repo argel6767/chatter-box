@@ -699,7 +699,6 @@ function SidebarMenuSubButton({
 }
 
 export {
-  Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
