@@ -16,6 +16,10 @@ export const checkCookie = async(): Promise<ApiResponseWrapper<string | FailedAP
 }
 
 export const register = async (request:RegisterUserDto): Promise<ApiResponseWrapper<User | FailedAPIRequestResponse>> => {
+    const lowercaseUsername = request.username.toLowerCase();
+    request.username = lowercaseUsername
+    const lowercaseEmail = request.email.toLowerCase();
+    request.email = lowercaseEmail;
     try {
         const response = await apiClient.post(RESOURCE_PATH + "/register", request);
         return getSuccessfulResponse(response);
@@ -26,6 +30,8 @@ export const register = async (request:RegisterUserDto): Promise<ApiResponseWrap
 }
 
 export const login = async (request:AuthenticateUserDto): Promise<ApiResponseWrapper<User | FailedAPIRequestResponse>> => {
+    const lowercase = request.username.toLowerCase();
+    request.username = lowercase
     try {
         const response = await apiClient.post(RESOURCE_PATH + "/login", request);
         return getSuccessfulResponse(response);

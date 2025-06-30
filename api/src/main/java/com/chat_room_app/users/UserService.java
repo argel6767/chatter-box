@@ -1,22 +1,28 @@
 package com.chat_room_app.users;
 
 import com.chat_room_app.chatroom.dtos.ChatRoomIdAndNameDto;
+import com.chat_room_app.exceptions.BadRequest400Exception;
 import com.chat_room_app.exceptions.NotFound404Exception;
 import com.chat_room_app.friends.FriendStatus;
 import com.chat_room_app.friends.Friendship;
 import com.chat_room_app.friends.dtos.FriendIdAndNameDto;
+import com.chat_room_app.users.dtos.QueriedUserDto;
 import com.chat_room_app.users.dtos.UserProfileDto;
+import lombok.extern.java.Log;
+import org.apache.coyote.BadRequestException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Log
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -55,6 +61,7 @@ public class UserService implements UserDetailsService {
 
         Set<FriendIdAndNameDto> mutualFriends = getMutualFriends(searchedUser, requestingUser);
 
+        log.info("fetched profile for " + searchedUser.getUsername());
         return new UserProfileDto(searchedUser.getUsername(), mutualFriends, commonChatRooms);
     }
 
@@ -84,6 +91,26 @@ public class UserService implements UserDetailsService {
                 .forEach(friends::add);
 
         return friends;
+    }
+
+    /**
+     * Finds all users whose usernames match the query given
+     * @param query
+     * @return
+     */
+    public List<QueriedUserDto> queryUsers(String query) {
+        if (query == null || query.isBlank()) {
+            throw new BadRequest400Exception("Query cannot be empty");
+        }
+        query = query.trim().toLowerCase();
+
+        if (query.length() < 3) { //too short of a query
+            return new ArrayList<>();
+        }
+        log.info("fetch users with query: "+ query);
+        List<User> queriedUsers = userRepository.findAllByUsernameLike(query);
+        return queriedUsers.stream()
+                .map(user -> new QueriedUserDto(user.getId(), user.getUsername())).toList();
     }
 
     @Override

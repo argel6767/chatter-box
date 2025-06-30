@@ -21,7 +21,7 @@ import java.util.Optional;
  * holds auth endpoints that can be accessed without a JWT token
  */
 @Log
-@RequestMapping("api/v1/auths")
+@RequestMapping("/api/v1/auths")
 @RestController
 public class AuthController {
 

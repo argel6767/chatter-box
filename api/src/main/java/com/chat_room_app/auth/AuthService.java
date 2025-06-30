@@ -63,7 +63,7 @@ public class AuthService {
             throw new BadRequest400Exception(request.password() + " is an invalid password");
         }
         log.info("Creating new user " + request.username());
-        User user = new User(request.username(), request.email(), passwordEncoder.encode(request.password()));
+        User user = new User(request.username().toLowerCase(), request.email().toLowerCase(), passwordEncoder.encode(request.password()));
         AuthDetails authDetails = user.getAuthDetails();
         authDetails.setAuthorities("ROLE_USER");
         String code = setVerificationCode(authDetails);
@@ -123,7 +123,7 @@ public class AuthService {
      */
     public User authenticateUser(AuthenticateUserDto request) {
         log.info("Authenticating user " + request.username());
-        User user = getUserByUsername(request.username());
+        User user = getUserByUsername(request.username().toLowerCase());
         AuthDetails authDetails = user.getAuthDetails();
         if (!authDetails.getIsVerified()) {
             log.warning("user " + request.username() + " is not verified");

@@ -1,6 +1,7 @@
 import {create} from 'zustand'
 import {User} from '@/lib/models/models'
 import { FriendshipDto } from '@/lib/models/responses';
+import { useProtectedContext } from '@/app/(protected)/protected-route';
 
 interface SearchQueryStore {
     searchQuery: string;
@@ -24,18 +25,6 @@ export const useUserStore = create<UserStore>((set) => ({
     removeUser: () => set(() => ({ user: undefined }))
 }));
 
-interface LoadingStore {
-    loading: boolean;
-    setLoading: (loading: boolean) => void;
-    toggleLoading: () => void;
-}
-
-export const useLoadingStore = create<LoadingStore>((set) => ({
-    loading: false,
-    setLoading: (loading: boolean) => set(() => ({ loading })),
-    toggleLoading: () => set((state) => ({ loading: !state.loading }))
-}));
-
 interface FriendStore {
     friends: FriendshipDto[];
     setFriends: (friends: FriendshipDto[]) => void;
@@ -50,4 +39,17 @@ export const useFriendStore = create<FriendStore>((set) => ({
     addFriend: (friendship: FriendshipDto) => set((state) => ({friends: [...state.friends, friendship]}))
 }));
 
+
+export const useClearStores = () => {
+    const {removeUser} = useUserStore();
+    const {setFriends} = useFriendStore();
+    const {setIsAuthorized} = useProtectedContext();
+
+    return(() => {
+        localStorage.removeItem("user");
+        setIsAuthorized(false);
+        setFriends([]);
+        removeUser();
+    })
+}
 

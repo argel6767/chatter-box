@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -263,6 +264,219 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("GET /api/v1/users/query → 200 OK with matching users")
+    @WithMockUser(username = "John")
+    void queryUsers_authenticated_withMatches() throws Exception {
+        // Create requester
+        User requester = new User("John", "john@email.com", "password");
+        AuthDetails requesterAuth = new AuthDetails();
+        requesterAuth.setIsVerified(true);
+        requesterAuth.setAuthorities("ROLE_USER");
+        requester.setAuthDetails(requesterAuth);
+        userRepository.save(requester);
 
+        // Create users with matching usernames
+        User billy = new User("Billy", "billy@email.com", "password");
+        AuthDetails billyAuth = new AuthDetails();
+        billyAuth.setIsVerified(true);
+        billyAuth.setAuthorities("ROLE_USER");
+        billy.setAuthDetails(billyAuth);
+        userRepository.save(billy);
+
+        User billSmith = new User("BillSmith", "billsmith@email.com", "password");
+        AuthDetails billSmithAuth = new AuthDetails();
+        billSmithAuth.setIsVerified(true);
+        billSmithAuth.setAuthorities("ROLE_USER");
+        billSmith.setAuthDetails(billSmithAuth);
+        userRepository.save(billSmith);
+
+        // Create user that shouldn't match
+        User alice = new User("Alice", "alice@email.com", "password");
+        AuthDetails aliceAuth = new AuthDetails();
+        aliceAuth.setIsVerified(true);
+        aliceAuth.setAuthorities("ROLE_USER");
+        alice.setAuthDetails(aliceAuth);
+        userRepository.save(alice);
+
+        jwtUtilsMock.when(JwtUtils::getCurrentUserId).thenReturn(requester.getId());
+
+        mockMvc.perform(
+                        get("/api/v1/users/query")
+                                .param("query", "bill"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[*].username").value(containsInAnyOrder("Billy", "BillSmith")))
+                .andExpect(jsonPath("$[*].id").exists());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/query → 200 OK with no matches")
+    @WithMockUser(username = "John")
+    void queryUsers_authenticated_noMatches() throws Exception {
+        // Create requester
+        User requester = new User("John", "john@email.com", "password");
+        AuthDetails requesterAuth = new AuthDetails();
+        requesterAuth.setIsVerified(true);
+        requesterAuth.setAuthorities("ROLE_USER");
+        requester.setAuthDetails(requesterAuth);
+        userRepository.save(requester);
+
+        // Create users that won't match
+        User alice = new User("Alice", "alice@email.com", "password");
+        AuthDetails aliceAuth = new AuthDetails();
+        aliceAuth.setIsVerified(true);
+        aliceAuth.setAuthorities("ROLE_USER");
+        alice.setAuthDetails(aliceAuth);
+        userRepository.save(alice);
+
+        jwtUtilsMock.when(JwtUtils::getCurrentUserId).thenReturn(requester.getId());
+
+        mockMvc.perform(
+                        get("/api/v1/users/query")
+                                .param("query", "xyz"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/query → 200 OK case insensitive matching")
+    @WithMockUser(username = "John")
+    void queryUsers_authenticated_caseInsensitive() throws Exception {
+        // Create requester
+        User requester = new User("John", "john@email.com", "password");
+        AuthDetails requesterAuth = new AuthDetails();
+        requesterAuth.setIsVerified(true);
+        requesterAuth.setAuthorities("ROLE_USER");
+        requester.setAuthDetails(requesterAuth);
+        userRepository.save(requester);
+
+        // Create user with mixed case username
+        User billy = new User("BiLLy", "billy@email.com", "password");
+        AuthDetails billyAuth = new AuthDetails();
+        billyAuth.setIsVerified(true);
+        billyAuth.setAuthorities("ROLE_USER");
+        billy.setAuthDetails(billyAuth);
+        userRepository.save(billy);
+
+        jwtUtilsMock.when(JwtUtils::getCurrentUserId).thenReturn(requester.getId());
+
+        mockMvc.perform(
+                        get("/api/v1/users/query")
+                                .param("query", "BILL"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].username").value("BiLLy"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/query → 200 OK with whitespace trimming")
+    @WithMockUser(username = "John")
+    void queryUsers_authenticated_withWhitespace() throws Exception {
+        // Create requester
+        User requester = new User("John", "john@email.com", "password");
+        AuthDetails requesterAuth = new AuthDetails();
+        requesterAuth.setIsVerified(true);
+        requesterAuth.setAuthorities("ROLE_USER");
+        requester.setAuthDetails(requesterAuth);
+        userRepository.save(requester);
+
+        // Create matching user
+        User billy = new User("Billy", "billy@email.com", "password");
+        AuthDetails billyAuth = new AuthDetails();
+        billyAuth.setIsVerified(true);
+        billyAuth.setAuthorities("ROLE_USER");
+        billy.setAuthDetails(billyAuth);
+        userRepository.save(billy);
+
+        jwtUtilsMock.when(JwtUtils::getCurrentUserId).thenReturn(requester.getId());
+
+        mockMvc.perform(
+                        get("/api/v1/users/query")
+                                .param("query", "  bill  "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].username").value("Billy"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/query → 400 BAD REQUEST when query is empty")
+    @WithMockUser(username = "John")
+    void queryUsers_authenticated_emptyQuery() throws Exception {
+        // Create requester
+        User requester = new User("John", "john@email.com", "password");
+        AuthDetails requesterAuth = new AuthDetails();
+        requesterAuth.setIsVerified(true);
+        requesterAuth.setAuthorities("ROLE_USER");
+        requester.setAuthDetails(requesterAuth);
+        userRepository.save(requester);
+
+        jwtUtilsMock.when(JwtUtils::getCurrentUserId).thenReturn(requester.getId());
+
+        mockMvc.perform(
+                        get("/api/v1/users/query")
+                                .param("query", ""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorMessage").value("Query cannot be empty"))
+                .andExpect(jsonPath("$.instance").value("/api/v1/users/query"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/query → 400 BAD REQUEST when query is whitespace only")
+    @WithMockUser(username = "John")
+    void queryUsers_authenticated_whitespaceOnlyQuery() throws Exception {
+        // Create requester
+        User requester = new User("John", "john@email.com", "password");
+        AuthDetails requesterAuth = new AuthDetails();
+        requesterAuth.setIsVerified(true);
+        requesterAuth.setAuthorities("ROLE_USER");
+        requester.setAuthDetails(requesterAuth);
+        userRepository.save(requester);
+
+        jwtUtilsMock.when(JwtUtils::getCurrentUserId).thenReturn(requester.getId());
+
+        mockMvc.perform(
+                        get("/api/v1/users/query")
+                                .param("query", "   "))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorMessage").value("Query cannot be empty"))
+                .andExpect(jsonPath("$.instance").value("/api/v1/users/query"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/query → 400 BAD REQUEST when query parameter is missing")
+    @WithMockUser(username = "John")
+    void queryUsers_authenticated_missingQueryParameter() throws Exception {
+        // Create requester
+        User requester = new User("John", "john@email.com", "password");
+        AuthDetails requesterAuth = new AuthDetails();
+        requesterAuth.setIsVerified(true);
+        requesterAuth.setAuthorities("ROLE_USER");
+        requester.setAuthDetails(requesterAuth);
+        userRepository.save(requester);
+
+        jwtUtilsMock.when(JwtUtils::getCurrentUserId).thenReturn(requester.getId());
+
+        mockMvc.perform(
+                        get("/api/v1/users/query"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/users/query → 403 FORBIDDEN when unauthenticated")
+    void queryUsers_unauthenticated() throws Exception {
+        jwtUtilsMock.when(JwtUtils::getCurrentUserId).thenThrow(IllegalStateException.class);
+
+        mockMvc.perform(
+                        get("/api/v1/users/query")
+                                .param("query", "bill"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorMessage").value("No authenticated user found"))
+                .andExpect(jsonPath("$.instance").value("/api/v1/users/query"));
+    }
 
 }

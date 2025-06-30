@@ -36,3 +36,14 @@ export interface FriendshipDto {
     status: "ACCEPTED" | "PENDING" | "BLOCKED"
 }
 
+export interface QueriedUserDto {
+    id: number,
+    username: string
+}
+
+export interface UserProfileDto {
+    username: string,
+    friends: FriendIdAndNameDto[] //mutual friends
+    commonChatRooms: ChatRoomDto[]
+}
+

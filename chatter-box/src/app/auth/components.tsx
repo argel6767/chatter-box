@@ -9,13 +9,18 @@ import { useState } from "react"
 import {AuthenticateUserDto} from "@/lib/models/requests";
 import {login, register} from "@/api/auths";
 import {sleep} from "@/lib/utils";
-import {useLoadingStore, useUserStore} from "@/hooks/stores";
+import { useUserStore} from "@/hooks/stores";
 import { LoadingSpinner} from "@/components/ui/loading";
 import { AnnouncementMessage } from "@/components/ui/annoucementMessage"
 import { useToggle } from "@/hooks/use-toggle"
 import { useFailedRequest } from "@/hooks/use-failed-request"
 
-export const SignUp = () => {
+interface AuthProps {
+  isLoading: boolean,
+  toggleLoading: () => void;
+}
+
+export const SignUp = ({isLoading, toggleLoading}: AuthProps) => {
     const [formData, setFormData] = useState({
         email: "",
         username: "",
@@ -25,7 +30,6 @@ export const SignUp = () => {
     const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [isRegistered, setIsRegistered] = useState(false);
-    const {value:loading, toggleValue} = useToggle(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
@@ -36,9 +40,9 @@ export const SignUp = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        toggleValue();
+        toggleLoading();
         const response = await register(formData);
-        toggleValue();
+        toggleLoading();
         if ('errorMessage' in response.data) {
             const errorMessage = response.data.errorMessage;
             updateFailedRequest(true, errorMessage)
@@ -67,7 +71,7 @@ export const SignUp = () => {
           )
       }
 
-      if (loading) {
+      if (isLoading) {
           return (
               <AnnouncementMessage title={"Creating your account..."}>
                   <LoadingSpinner  size={"lg"}/>
@@ -124,7 +128,9 @@ export const SignUp = () => {
       )
 }
 
-export const Login = () => {
+
+
+export const Login = ({isLoading, toggleLoading}: AuthProps) => {
 
     const router = useRouter();
     const [formData, setFormData] = useState<AuthenticateUserDto>({
@@ -133,15 +139,13 @@ export const Login = () => {
       });
     const {setUser} = useUserStore();
     const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
-    const {value: isLoading, toggleValue} = useToggle(false);
-
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        toggleValue();
+        toggleLoading();
         const response = await login(formData);
         if ('errorMessage' in response.data) {
-            toggleValue();
+          toggleLoading();
             const errorMessage = response.data.errorMessage;
             updateFailedRequest(true, errorMessage);
             await sleep(2500);
@@ -244,7 +248,7 @@ export const Login = () => {
 
 export const AuthToggle = () => {
     const [isSignUp, setIsSignUp] = useState(false);
-    const {loading} = useLoadingStore()
+    const {value: isLoading, toggleValue} = useToggle(false);
 
     return (
         <main>
@@ -254,8 +258,8 @@ export const AuthToggle = () => {
                     {isSignUp ? "Create your account to get started" : "Welcome back! Please sign in to your account"}
                 </p>
             </header>
-            {isSignUp ? <SignUp /> :
-            <Login/>}
+            {isSignUp ? <SignUp toggleLoading={toggleValue} isLoading = {isLoading}/> :
+            <Login toggleLoading={toggleValue} isLoading = {isLoading}/>}
             <div className="text-center py-2">
                 <span className="text-gray-400">
                   {isSignUp? "Already have an account" : "Don't have an account"}
@@ -265,7 +269,7 @@ export const AuthToggle = () => {
                   variant="link"
                   onClick={() => setIsSignUp((prev) => !prev)}
                   className="text-slate-400 hover:text-white p-0 ml-2"
-                  disabled={loading}
+                  disabled={isLoading}
                 >
                   {isSignUp ? "Sign In" : "Sign Up"}
                 </Button>

@@ -4,8 +4,8 @@ import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogTrigger,} from "@/co
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/chat/input"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import {useFriendStore, useSearchQueryStore, useUserStore} from "@/hooks/stores"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {useClearStores, useFriendStore, useSearchQueryStore, useUserStore} from "@/hooks/stores"
 import { Badge, MessageCircle, Plus, Search, Settings, Users } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -16,9 +16,39 @@ import { useToggle } from "@/hooks/use-toggle"
 import { Label } from "@/components/ui/label"
 import { useGetFriendRequests, useGetFriends } from "@/hooks/react-query"
 import { isFailedResponse } from "@/lib/utils"
-import { FriendshipDto } from "@/lib/models/responses"
+import { FriendshipDto, QueriedUserDto } from "@/lib/models/responses"
 import { Loading } from "@/components/ui/loading"
 import { ChatBubbleAvatar } from "@/components/ui/chat/chat-bubble"
+import { toast } from "sonner"
+import { logout } from "@/api/auths"
+import { UserInfo } from "node:os"
+import { SearchForUser } from "@/components/search-for-user"
+
+const Logout =  () => {
+
+  const {value:isLoading, toggleValue: toggleLoading} = useToggle(false);
+  const router = useRouter();
+  const clearStores = useClearStores();
+
+  const handleLogout = async() => {
+    toggleLoading();
+    const response = await logout();
+    toast("Failed to logout! Redirecting to landing page.")
+    if (!isFailedResponse(response)) {
+      clearStores();
+      router.push("/");
+    }
+    else {
+      toast("Failed to logout! Redirecting to landing page.")
+      router.replace("/")
+    }
+  }
+  
+  return (
+    <button className="hover:bg-slate-700 hover:cursor-pointer text-left disabled:cursor-not-allowed flex items-center gap-2" onClick={handleLogout} disabled={isLoading}>Logout {isLoading && <Loading variant="default" size="sm"/>}</button>
+  )
+
+}
 
 
 const DropDownSettings = () => {
@@ -28,11 +58,13 @@ const DropDownSettings = () => {
         <Settings className="h-6 w-6 text-gray-400 hover:text-slate-300 hover:bg-white/10 rounded-full " />
       </DropdownMenuTrigger>
         <DropdownMenuContent className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 text-slate-200">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel className="text-lg">My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="hover:bg-red-200">Profile</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Logout</DropdownMenuItem>
+          <nav className="flex flex-col gap-2 p-2">
+            <Link className="hover:bg-slate-700" href={"/profile"}>Profile</Link>
+            <Link className="hover:bg-slate-700" href={"/settings"}>Settings</Link>
+            <Logout/>
+          </nav>
         </DropdownMenuContent>
     </DropdownMenu>
     )
@@ -147,7 +179,8 @@ export const Header = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2 py-2">
                 <MessageCircle className="h-7 w-7 text-slate-400" />
-                <Link className="text-2xl font-semibold text-slate-200 hover:underline hover:underline-offset-8" href={"/chats"}>ChatterBox</Link>
+                <Link className="text-2xl font-semibold text-slate-200 hover:underline hover:underline-offset-8"
+                 href={"/chats"}>ChatterBox</Link>
               </div>
               <nav className="flex justify-end gap-2">
                 <FriendsDropDown/>
@@ -193,13 +226,43 @@ export const GoBackHome = () => {
     )
 }
 
-const MemberList = () => {
-  const {user} = useUserStore();
+interface MemberListProps {
+  friends?: FriendshipDto[];
+  users?: QueriedUserDto[];
+}
+
+export const MemberList = ({friends=[], users=[]}: MemberListProps) => {
+
+  return (
+    <main>
+      <ul>
+      {friends.map((friendship) => {
+          const friend = friendship.friend;
+          const fallBack = friend.username.substring(0,1).toUpperCase();
+        return (
+          <li className="flex justify-around items-center gap-3 p-4 hover:bg-slate-700 hover:cursor-pointer rounded-lg text-sm" key={friend.id}>
+            <ChatBubbleAvatar className="bg-slate-200 text-black" fallback={fallBack}/>
+            <p>{friend.username}</p>
+          </li>)})}
+      </ul>
+      <ul>
+      {users.map((user) => {
+          const fallBack = user.username.substring(0,1).toUpperCase();
+        return (
+          <li className="flex justify-around items-center gap-3 p-4 hover:bg-slate-700 hover:cursor-pointer rounded-lg text-sm" key={user.id}>
+            <ChatBubbleAvatar className="bg-slate-200 text-black" fallback={fallBack}/>
+            <p>{user.username}</p>
+          </li>)})}
+      </ul>
+    </main>
+    
+  )
   
 }
 
 const NewChatSheet = () => {
   const {user} = useUserStore();
+  const {friends} = useFriendStore();
   const [formData, setFormData] = useState<NewChatDto>(
     {name:"",
     usernames: [user.username]}
@@ -239,15 +302,22 @@ const NewChatSheet = () => {
         </DialogTrigger>
         <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-center py-2 text-xl">Create New Chat</DialogTitle>
-            <form onSubmit={createNewChat} className="flex flex-col justify-center gap-4">
+            <DialogTitle className="text-center py-2 text-2xl">Create New Chat</DialogTitle>
+            <form onSubmit={createNewChat} className="flex flex-col justify-center gap-6">
               <span className="flex flex-col justify-center gap-2">
-                <Label htmlFor="name">Name your chat (optional)</Label>
-                <Input id="name" name="name" value={formData.name} onChange={handleName} placeholder="Coolest chat ever"/>
+                <Label className="text-md" htmlFor="name">Name your chat (optional)</Label>
+                <Input id="name" name="name" value={formData.name} onChange={handleName} placeholder="ex. Coolest Chat Ever"/>
               </span>
+              <section className="flex flex-col gap-2">
+                <SearchForUser labelText="Other Users">
+                  <span className="border-b-2 flex flex-col gap-2">
+                    <Label className="text-md">Your friends</Label>
+                    <MemberList friends={friends}/>
+                  </span>
+                </SearchForUser>
+              </section>
               <Button type="submit">Create Chat</Button>
             </form>
-            
           </DialogHeader>
         </DialogContent>
       </Dialog>

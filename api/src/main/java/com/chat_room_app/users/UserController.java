@@ -1,13 +1,16 @@
 package com.chat_room_app.users;
 
 import com.chat_room_app.jwt.JwtUtils;
+import com.chat_room_app.users.dtos.QueriedUserDto;
 import com.chat_room_app.users.dtos.UserDto;
 import com.chat_room_app.users.dtos.UserProfileDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("api/v1/users")
+@RequestMapping("/api/v1/users")
 public class UserController {
 
     private final UserService userService;
@@ -35,6 +38,12 @@ public class UserController {
     public ResponseEntity<UserProfileDto> getProfile(@PathVariable Long searchUserId) {
         Long requesterId = JwtUtils.getCurrentUserId();
         UserProfileDto dto = userService.getUserProfile(searchUserId, requesterId);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/query")
+    public ResponseEntity<List<QueriedUserDto>> queryUsers(@RequestParam String query) {
+        List<QueriedUserDto> dto = userService.queryUsers(query);
         return ResponseEntity.ok(dto);
     }
     

@@ -1,0 +1,58 @@
+# Build artifacts and temporary files
+target/
+!target/*.jar
+build/
+*.class
+*.war
+*.ear
+.gradle/
+
+# Maven specific
+.mvn/wrapper/maven-wrapper.jar
+mvnw.cmd
+
+
+# IDE specific files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+bin/
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+logs/
+log/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Docker specific
+.dockerignore
+docker-compose*.yml
+Dockerfile*
+
+# Documentation and others
+README.md
+LICENSE
+*.md
+docs/
+
+# Your specified exclusions
+*.env
+/src/test/**
+compose.yaml

@@ -13,4 +13,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     List<User> findAllByUsernameIn(Collection<String> usernames);
     void deleteByUsername(String username);
+    @Query("SELECT u FROM User u WHERE LOWER (u.username) LIKE CONCAT('%', :query, '%')")
+    List<User> findAllByUsernameLike(@Param("query") String query);
 }
