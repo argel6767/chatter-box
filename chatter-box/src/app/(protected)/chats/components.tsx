@@ -1,12 +1,12 @@
 'use client'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogTrigger,} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/chat/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {useClearStores, useFriendStore, useSearchQueryStore, useUserStore} from "@/hooks/stores"
-import { Badge, MessageCircle, Plus, Search, Settings, Users } from "lucide-react"
+import {  MessageCircle, Plus, Search, Settings, Users } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -16,12 +16,11 @@ import { useToggle } from "@/hooks/use-toggle"
 import { Label } from "@/components/ui/label"
 import { useGetFriendRequests, useGetFriends } from "@/hooks/react-query"
 import { isFailedResponse } from "@/lib/utils"
-import { FriendshipDto, QueriedUserDto } from "@/lib/models/responses"
+import { DirectMessageDto, FriendshipDto, QueriedUserDto } from "@/lib/models/responses"
 import { Loading } from "@/components/ui/loading"
 import { ChatBubbleAvatar } from "@/components/ui/chat/chat-bubble"
 import { toast } from "sonner"
 import { logout } from "@/api/auths"
-import { UserInfo } from "node:os"
 import { SearchForUser } from "@/components/search-for-user"
 
 const Logout =  () => {
@@ -377,7 +376,7 @@ export const ChatRoomList = () => {
 }
 
 export const DirectMessageList = () => {
-    const directMessages = []
+    const directMessages: DirectMessageDto[] = []
 
     const router = useRouter();
    // const [directMessages, setDirectMessages] = useState<any>([]);
@@ -413,26 +412,16 @@ export const DirectMessageList = () => {
                       <div className="flex items-center space-x-3">
                         <div className="relative">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={dm.avatar} alt={dm.name} />
                             <AvatarFallback className="bg-slate-500 text-white text-xs">
                               {dm.name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
-                          {dm.isOnline && (
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></div>
-                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <p className="text-sm font-medium text-white truncate">{dm.name}</p>
-                            {dm.unreadCount > 0 && (
-                              <Badge className="bg-slate-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                                {dm.unreadCount}
-                              </Badge>
-                            )}
+                            
                           </div>
-                          <p className="text-xs text-gray-400 truncate">{dm.lastMessage}</p>
-                          <span className="text-xs text-gray-500">{dm.timestamp}</span>
                         </div>
                       </div>
                     </CardContent>

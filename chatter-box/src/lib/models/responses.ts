@@ -47,3 +47,9 @@ export interface UserProfileDto {
     commonChatRooms: ChatRoomDto[]
 }
 
+export interface DirectMessageDto {
+    id: number;
+    name: string,
+    user: QueriedUserDto;
+    otherMember: QueriedUserDto;
+}
