@@ -2,7 +2,7 @@ import { ChatRoomList, DirectMessageList, Header } from "../../components";
 import {ChatContainer} from "@/app/(protected)/chats/[type]/[chatId]/components";
 
 type PageProps = {
-    params: { type: string; chatId: string }
+  params: Promise<{ type: string; chatId: string }>
 };
 
 export default async function ChatPage({params}: PageProps) {
