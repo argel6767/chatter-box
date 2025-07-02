@@ -35,3 +35,6 @@ README.html
 
 ## Python
 __pycache__/*
+
+## env
+*.env
