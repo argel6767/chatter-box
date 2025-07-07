@@ -2,6 +2,7 @@ package com.chatter_box.email_service.exception;
 
 import io.quarkus.security.UnauthorizedException;
 import io.smallrye.faulttolerance.api.RateLimitException;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
@@ -34,6 +35,15 @@ class UnAuthorizedExceptionHandler implements ExceptionMapper<UnauthorizedExcept
     public Response toResponse(UnauthorizedException ae) {
         ErrorResDto dto = new ErrorResDto(ae.getMessage(), UtilFunctions.getTimeStamp());
         return RestResponse.ResponseBuilder.create(RestResponse.Status.UNAUTHORIZED, dto).build().toResponse();
+    }
+}
+
+@Provider
+class BadRequestExceptionHandler implements ExceptionMapper<BadRequestException> {
+    @Override
+    public Response toResponse(BadRequestException bre) {
+        ErrorResDto dto = new ErrorResDto(bre.getMessage(), UtilFunctions.getTimeStamp());
+        return RestResponse.ResponseBuilder.create(RestResponse.Status.BAD_REQUEST, dto).build().toResponse();
     }
 }
 

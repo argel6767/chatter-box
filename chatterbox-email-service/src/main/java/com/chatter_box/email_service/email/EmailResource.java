@@ -27,6 +27,7 @@ public class EmailResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Uni<Void> sendVerificationEmail(@HeaderParam("Access-Token") String accessToken, VerificationCodeDto request) {
         verifyAccessToken(accessToken);
+        verifyRequestBody(request);
         return emailService.sendVerificationEmail(request.email(), request.username(), request.code());
     }
 
@@ -36,12 +37,19 @@ public class EmailResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Uni<Void> sendResetPasswordEmail(@HeaderParam("Access-Token") String accessToken, VerificationCodeDto request) {
         verifyAccessToken(accessToken);
+        verifyRequestBody(request);
         return emailService.sendResetPasswordEmail(request.email(), request.username(), request.code());
     }
 
     private void verifyAccessToken(String accessToken) {
         if (accessToken == null || !accessToken.equals(secretKey)) {
             throw new UnauthorizedException("Invalid access token");
+        }
+    }
+
+    private void verifyRequestBody(VerificationCodeDto request) {
+        if (request.email() == null || request.username() == null || request.code() == null) {
+            throw new BadRequestException("Invalid request");
         }
     }
 
