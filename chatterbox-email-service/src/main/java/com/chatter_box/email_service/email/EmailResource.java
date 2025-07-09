@@ -8,6 +8,8 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import io.quarkus.logging.Log;
+
 
 import java.time.temporal.ChronoUnit;
 
@@ -22,7 +24,7 @@ public class EmailResource {
     String secretKey;
 
     @POST
-    @RateLimit(value = 5, window = 10, windowUnit = ChronoUnit.MINUTES)
+    @RateLimit(value = 20, window = 5, windowUnit = ChronoUnit.MINUTES)
     @Path("/verify")
     @Consumes(MediaType.APPLICATION_JSON)
     public Uni<Void> sendVerificationEmail(@HeaderParam("Access-Token") String accessToken, VerificationCodeDto request) {
@@ -32,7 +34,7 @@ public class EmailResource {
     }
 
     @POST
-    @RateLimit(value = 5, window = 10, windowUnit = ChronoUnit.MINUTES)
+    @RateLimit(value = 20, window = 5, windowUnit = ChronoUnit.MINUTES)
     @Path("/reset-password")
     @Consumes(MediaType.APPLICATION_JSON)
     public Uni<Void> sendResetPasswordEmail(@HeaderParam("Access-Token") String accessToken, VerificationCodeDto request) {

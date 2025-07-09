@@ -14,6 +14,8 @@ export const failedCallMessage = (error: any): string => {
 
 export const API_VERSION_PATHING_V1 = "/api/v1";
 
+export const API_VERSION_PATHING_V2 = "/api/v2";
+
 export interface ApiResponseWrapper<T> {
     statusCode: number,
     data: T

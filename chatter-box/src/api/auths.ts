@@ -1,9 +1,10 @@
-import {API_VERSION_PATHING_V1, apiClient, ApiResponseWrapper, FailedAPIRequestResponse, getFailedResponse, getSuccessfulResponse} from "@/api/apiConfig";
+import {API_VERSION_PATHING_V1, API_VERSION_PATHING_V2, apiClient, ApiResponseWrapper, FailedAPIRequestResponse, getFailedResponse, getSuccessfulResponse} from "@/api/apiConfig";
 import {AuthenticateUserDto, ChangePasswordDto, ForgetPasswordDto, RegisterUserDto, VerifyUserDto} from "@/lib/models/requests";
 import {User} from "@/lib/models/models";
 import {EmailSentSuccessfullyDto} from "@/lib/models/responses";
 
 const RESOURCE_PATH = API_VERSION_PATHING_V1 + "/auths"
+const RESOURCE_PATH_V2 = API_VERSION_PATHING_V2 + "/auths"
 
 export const checkCookie = async(): Promise<ApiResponseWrapper<string | FailedAPIRequestResponse>> => {
     try {
@@ -21,7 +22,7 @@ export const register = async (request:RegisterUserDto): Promise<ApiResponseWrap
     const lowercaseEmail = request.email.toLowerCase();
     request.email = lowercaseEmail;
     try {
-        const response = await apiClient.post(RESOURCE_PATH + "/register", request);
+        const response = await apiClient.post(RESOURCE_PATH_V2 + "/register", request);
         return getSuccessfulResponse(response);
     }
     catch (error) {
@@ -73,7 +74,7 @@ export const changePassword = async (request: ChangePasswordDto): Promise<ApiRes
 
 export const resendVerificationCode = async (username: string): Promise<ApiResponseWrapper<EmailSentSuccessfullyDto | FailedAPIRequestResponse>> => {
     try {
-        const response = await apiClient.post(RESOURCE_PATH + `/resend/${username}`);
+        const response = await apiClient.post(RESOURCE_PATH_V2 + `/resend/${username}`);
         return getSuccessfulResponse(response);
     }
     catch (error) {
@@ -83,7 +84,7 @@ export const resendVerificationCode = async (username: string): Promise<ApiRespo
 
 export const forgotPassword = async (username: string): Promise<ApiResponseWrapper<EmailSentSuccessfullyDto | FailedAPIRequestResponse>> => {
     try {
-        const response = await apiClient.post(RESOURCE_PATH + `/forgot/${username}`);
+        const response = await apiClient.post(RESOURCE_PATH_V2 + `/forgot/${username}`);
         return getSuccessfulResponse(response);
     }
     catch (error) {

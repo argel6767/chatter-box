@@ -14,14 +14,13 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static org.junit.jupiter.api.Assertions.*;
 @QuarkusTest
 class EmailResourceTest {
 
     @Inject
     MockMailbox mockMailbox;
 
-    private static final String VALID_ACCESS_TOKEN = "secret-key";
+    private static final String VALID_ACCESS_TOKEN = "secret_key";
     private static final String INVALID_ACCESS_TOKEN = "invalid-token";
     private static final String VERIFY_ENDPOINT = "/api/v1/emails/verify";
     private static final String RESET_PASSWORD_ENDPOINT = "/api/v1/emails/reset-password";

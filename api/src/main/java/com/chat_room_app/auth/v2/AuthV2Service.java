@@ -6,7 +6,6 @@ import com.chat_room_app.auth.dtos.VerifyUserDto;
 import com.chat_room_app.email.ChatterBoxEmailService;
 import com.chat_room_app.exceptions.custom_exceptions.Conflict409Exception;
 import com.chat_room_app.exceptions.custom_exceptions.NotFound404Exception;
-import com.chat_room_app.exceptions.custom_exceptions.ServiceUnavailableException;
 import com.chat_room_app.users.User;
 import com.chat_room_app.users.UserRepository;
 import lombok.extern.java.Log;
@@ -61,11 +60,11 @@ public class AuthV2Service {
 
     public void resendVerificationEmail(String username) {
         User user = getUserByUsername(username);
-        if (user.isEnabled()) {
+        AuthDetails authDetails = user.getAuthDetails();
+        if (authDetails.getIsVerified()) {
             log.warning("user already verified: " + username);
             throw new Conflict409Exception("Email is already verified");
         }
-        AuthDetails authDetails = user.getAuthDetails();
         String code = setVerificationCode(authDetails);
         CompletableFuture.runAsync(() -> {
             log.info("Sending email verification request to external email service");

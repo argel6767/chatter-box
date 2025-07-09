@@ -121,18 +121,19 @@ public class AuthService {
         return  userRepository.findByUsername(username).orElseThrow(() -> new NotFound404Exception("No user found for username: " + username));
     }
 
+
     /**
      * resends verification email to user but with new code
      * can be used if their last code expired
      */
     public void resendVerificationEmail(String username) throws MessagingException {
         User user = getUserByUsername(username);
-        if (user.isEnabled()) {
+        AuthDetails authDetails = user.getAuthDetails();
+        if (authDetails.getIsVerified()) {
             log.warning("user already verified: " + username);
             throw new Conflict409Exception("Email is already verified");
         }
         log.info("resending verification email with new code" + username);
-        AuthDetails authDetails = user.getAuthDetails();
         String code = setVerificationCode(authDetails);
         sendVerificationEmail(user, code);
         userRepository.save(user);
