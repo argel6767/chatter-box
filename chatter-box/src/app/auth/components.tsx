@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import {AuthenticateUserDto} from "@/lib/models/requests";
 import {login, register} from "@/api/auths";
-import {sleep} from "@/lib/utils";
+import {isFailedResponse, sleep} from "@/lib/utils";
 import { useUserStore} from "@/hooks/stores";
 import { LoadingSpinner} from "@/components/ui/loading";
 import { AnnouncementMessage } from "@/components/ui/annoucementMessage"
@@ -43,7 +43,7 @@ export const SignUp = ({isLoading, toggleLoading}: AuthProps) => {
         toggleLoading();
         const response = await register(formData);
         toggleLoading();
-        if ('errorMessage' in response.data) {
+        if (isFailedResponse(response)) {
             const errorMessage = response.data.errorMessage;
             updateFailedRequest(true, errorMessage)
             await sleep(2500);

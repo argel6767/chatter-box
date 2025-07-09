@@ -46,5 +46,5 @@ export const getFailedResponse = (error: unknown) => {
 }
 
 export const getSuccessfulResponse = <T>(response: AxiosResponse<any, any>) => {
-    return createResponseWrapper<T>(response.data, response.status);
+    return createResponseWrapper<T>(response.data, 200);
 }

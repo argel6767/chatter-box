@@ -16,7 +16,7 @@ export const checkCookie = async(): Promise<ApiResponseWrapper<string | FailedAP
     }
 }
 
-export const register = async (request:RegisterUserDto): Promise<ApiResponseWrapper<User | FailedAPIRequestResponse>> => {
+export const register = async (request:RegisterUserDto): Promise<ApiResponseWrapper<string | FailedAPIRequestResponse>> => {
     const lowercaseUsername = request.username.toLowerCase();
     request.username = lowercaseUsername
     const lowercaseEmail = request.email.toLowerCase();
