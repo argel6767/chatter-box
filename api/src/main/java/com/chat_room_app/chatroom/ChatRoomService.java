@@ -2,9 +2,9 @@ package com.chat_room_app.chatroom;
 
 import com.chat_room_app.chatroom.dtos.ChatRoomDto;
 import com.chat_room_app.chatroom.dtos.NewChatDto;
-import com.chat_room_app.exceptions.Conflict409Exception;
-import com.chat_room_app.exceptions.NotFound404Exception;
-import com.chat_room_app.exceptions.UnAuthorized401Exception;
+import com.chat_room_app.exceptions.custom_exceptions.Conflict409Exception;
+import com.chat_room_app.exceptions.custom_exceptions.NotFound404Exception;
+import com.chat_room_app.exceptions.custom_exceptions.UnAuthorized401Exception;
 import com.chat_room_app.message.dtos.MessageDto;
 import com.chat_room_app.users.User;
 import com.chat_room_app.users.UserRepository;

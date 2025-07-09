@@ -50,7 +50,7 @@ public class SecurityConfiguration{
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("api/v1/auths/**").permitAll()
+                        .requestMatchers("api/v1/auths/**", "api/v2/auths/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

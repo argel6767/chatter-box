@@ -1,7 +1,7 @@
 package com.chat_room_app.friends;
 
-import com.chat_room_app.exceptions.Conflict409Exception;
-import com.chat_room_app.exceptions.NotFound404Exception;
+import com.chat_room_app.exceptions.custom_exceptions.Conflict409Exception;
+import com.chat_room_app.exceptions.custom_exceptions.NotFound404Exception;
 import com.chat_room_app.friends.dtos.FriendIdAndNameDto;
 import com.chat_room_app.friends.dtos.FriendshipDto;
 import com.chat_room_app.users.User;

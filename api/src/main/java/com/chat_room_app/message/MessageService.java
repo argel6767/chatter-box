@@ -1,18 +1,15 @@
 package com.chat_room_app.message;
 
 import com.chat_room_app.chatroom.ChatRoom;
-import com.chat_room_app.chatroom.ChatRoomRepository;
 import com.chat_room_app.chatroom.ChatRoomService;
-import com.chat_room_app.exceptions.NotFound404Exception;
-import com.chat_room_app.exceptions.UnAuthorized401Exception;
+import com.chat_room_app.exceptions.custom_exceptions.NotFound404Exception;
+import com.chat_room_app.exceptions.custom_exceptions.UnAuthorized401Exception;
 import com.chat_room_app.message.dtos.MessageDto;
 import com.chat_room_app.message.dtos.NewMessageDto;
 import com.chat_room_app.message.dtos.UpdateMessageDto;
 import lombok.extern.java.Log;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 @Log

@@ -1,25 +1,25 @@
-package com.chat_room_app.auth;
+package com.chat_room_app.auth.v1;
 
+import com.chat_room_app.auth.AuthDetails;
+import com.chat_room_app.auth.AuthRepository;
 import com.chat_room_app.auth.dtos.*;
 import com.chat_room_app.email.EmailService;
-import com.chat_room_app.exceptions.BadRequest400Exception;
-import com.chat_room_app.exceptions.Conflict409Exception;
-import com.chat_room_app.exceptions.NotFound404Exception;
-import com.chat_room_app.exceptions.UnAuthorized401Exception;
+import com.chat_room_app.exceptions.custom_exceptions.BadRequest400Exception;
+import com.chat_room_app.exceptions.custom_exceptions.Conflict409Exception;
+import com.chat_room_app.exceptions.custom_exceptions.NotFound404Exception;
+import com.chat_room_app.exceptions.custom_exceptions.UnAuthorized401Exception;
 import com.chat_room_app.users.User;
 import com.chat_room_app.users.UserRepository;
 import jakarta.mail.MessagingException;
 import lombok.extern.java.Log;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static com.chat_room_app.auth.AuthUtil.*;
 
 /**
  * Holds the business logic for authenticating users and sending emails for verification codes
@@ -46,22 +46,7 @@ public class AuthService {
      */
     public User signUp(RegisterUserDto request) throws MessagingException {
         log.info("Signing up user");
-        if (!isValidEmail(request.email())) {
-            log.warning("Invalid email " + request.email());
-            throw new BadRequest400Exception(request.email() + " is an invalid email");
-        }
-        if (userRepository.findByEmail(request.email()).isPresent()) {
-            log.warning("User with email " + request.email() + " already exists");
-            throw new Conflict409Exception(request.email() + " is already in use");
-        }
-        if (userRepository.findByUsername(request.username()).isPresent()) {
-            log.warning("User with username " + request.username() + " already exists");
-            throw new Conflict409Exception(request.username() + " is already in use");
-        }
-        if (!isValidPassword(request.password())) {
-            log.warning("Invalid password " + request.password());
-            throw new BadRequest400Exception(request.password() + " is an invalid password");
-        }
+        verifyRegistrationDetails(request, userRepository);
         log.info("Creating new user " + request.username());
         User user = new User(request.username().toLowerCase(), request.email().toLowerCase(), passwordEncoder.encode(request.password()));
         AuthDetails authDetails = user.getAuthDetails();
@@ -70,51 +55,6 @@ public class AuthService {
         sendVerificationEmail(user, code);
         log.info("User " + request.username() + " created");
         return userRepository.save(user);
-    }
-
-
-
-    /**
-     * Checks whether an email is a valid one utilizing
-     * org.apache.commons.validator.routines EmailValidator class
-     * @param email
-     * @return
-     */
-    private boolean isValidEmail(String email) {
-        EmailValidator validator = EmailValidator.getInstance();
-        return validator.isValid(email);
-    }
-
-    /**
-     * This makes sure a password has the following characteristics:
-     * (?=.*[a-z]): makes sure that there is at least one small letter
-     * (?=.*[A-Z]): needs at least one capital letter
-     * (?=.*\\d): requires at least one digit
-     * (?=.*[@#$%^&+=!*?]): provides a guarantee of at least one special symbol
-     * .{8,}: imposes the minimum length of 8 characters
-     * @param password
-     * @return
-     */
-    private boolean isValidPassword(String password) {
-        if (password == null || password.isEmpty()) {
-            return false;
-        }
-        String regExpn = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!*?])(?=\\S+$).{8,}$";
-        Pattern pattern = Pattern.compile(regExpn);
-        Matcher matcher = pattern.matcher(password);
-        return matcher.matches();
-    }
-
-    /**
-     * generates a new verification code for user and sets it
-     * @param authDetails
-     * @return
-     */
-    private String setVerificationCode(AuthDetails authDetails) {
-        String verificationCode = generateVerificationCode();
-        authDetails.setCodeExpiryTime(LocalDateTime.now().plusMinutes(30));
-        authDetails.setVerificationCode(verificationCode);
-        return verificationCode;
     }
 
     /**
@@ -220,7 +160,7 @@ public class AuthService {
     }
 
     /**
-     * sends a user a verification code for changing one's, should they forget it.
+     * sends a user a verification code for changing one's password, should they forget it.
      */
 
     public void sendForgottenPasswordVerificationCode(String username) throws MessagingException {
@@ -276,16 +216,6 @@ public class AuthService {
         String email = user.getEmail();
         emailService.sendResetPasswordEmail(code,email);
         log.info("reset forgot password email sent for user " + user.getEmail());
-    }
-
-
-    /**
-     * generates a random 6-digit number to be used as a verification code
-     */
-    private String generateVerificationCode() {
-        log.info("generating verification code");
-        Random random = new Random();
-        return String.valueOf(random.nextInt(900000) + 100000); //guaranteed 6-digit number
     }
 
 }

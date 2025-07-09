@@ -1,4 +1,4 @@
-package com.chat_room_app.auth;
+package com.chat_room_app.auth.v1;
 
 
 import com.chat_room_app.auth.dtos.*;

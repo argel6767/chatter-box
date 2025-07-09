@@ -1,5 +1,6 @@
 package com.chat_room_app.exceptions;
 
+import com.chat_room_app.exceptions.custom_exceptions.*;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -77,4 +78,10 @@ public class GlobalExceptionHandler {
                 .body(new FailedAPIRequestResponse(me.getMessage(), request.getRequestURI()));
     }
 
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<FailedAPIRequestResponse> handleServiceUnavailableException(ServiceUnavailableException sue, HttpServletRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new FailedAPIRequestResponse(sue.getMessage(), request.getRequestURI()));
+    }
 }

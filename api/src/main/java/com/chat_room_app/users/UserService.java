@@ -1,15 +1,14 @@
 package com.chat_room_app.users;
 
 import com.chat_room_app.chatroom.dtos.ChatRoomIdAndNameDto;
-import com.chat_room_app.exceptions.BadRequest400Exception;
-import com.chat_room_app.exceptions.NotFound404Exception;
+import com.chat_room_app.exceptions.custom_exceptions.BadRequest400Exception;
+import com.chat_room_app.exceptions.custom_exceptions.NotFound404Exception;
 import com.chat_room_app.friends.FriendStatus;
 import com.chat_room_app.friends.Friendship;
 import com.chat_room_app.friends.dtos.FriendIdAndNameDto;
 import com.chat_room_app.users.dtos.QueriedUserDto;
 import com.chat_room_app.users.dtos.UserProfileDto;
 import lombok.extern.java.Log;
-import org.apache.coyote.BadRequestException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
