@@ -1,175 +1,95 @@
-# Chatterbox Email Service
+# ChatterBox Email Service 📧
 
-A dedicated Quarkus-based microservice responsible for handling email communications within the Chatterbox application ecosystem. This service operates independently from the main Spring Boot API and specializes in sending transactional emails such as verification codes and password reset notifications.
+A dedicated Quarkus microservice for handling email communications in the ChatterBox ecosystem. Provides transactional emails for user verification and password reset functionality.
 
-## Overview
+## 🛠️ Tech Stack
 
-The Chatterbox Email Service is designed as a lightweight, fast, and reliable email delivery system built on Quarkus. It provides a clean separation of concerns by handling all email-related functionality outside of the main application API.
+- **Quarkus 3.24.1** - Supersonic Subatomic Java framework
+- **Java 21** - Programming language
+- **Quarkus Mailer** - Reactive email sending
+- **Quarkus Qute** - Template engine for email content
+- **SmallRye Fault Tolerance** - Rate limiting and resilience
+- **SmallRye JWT** - JWT-based service authentication (SOON)
+- **RESTEasy Reactive** - REST API implementation
 
-## Features
+## ✨ Features
 
-- **Verification Code Emails**: Send email verification codes for user account activation
-- **Password Reset Emails**: Handle forgot password email notifications
-- **Reactive Programming**: Non-blocking email delivery using Mutiny for improved performance
-- **Rate Limiting**: Built-in rate limiting
-- **Authentication**: Access token-based security for API endpoints
-- **Error Handling**: Comprehensive exception handling with proper HTTP status codes
-- **HTML Email Templates**: Inline HTML templates for branded email communications
-- **Health Checks**: Built-in health monitoring and status endpoints
-- **Configuration Management**: Externalized configuration for different environments
+- **Email Verification** - Send verification codes for account activation
+- **Password Reset** - Handle forgot password email notifications
+- **Rate Limiting** - 20 requests per 5 minutes per endpoint
+- **Service Authentication** - JWT-based access token security
+- **Reactive Processing** - Non-blocking email delivery with Mutiny
+- **HTML Templates** - Branded email templates with responsive design
+- **Health Monitoring** - Built-in health checks and status endpoints
 
-## Technology Stack
-
-- **Quarkus**: Java framework with reactive capabilities
-- **Java 21+**: Programming language
-- **Maven**: Build and dependency management
-- **Quarkus Mailer**: Reactive email sending capabilities
-- **SmallRye Mutiny**: Reactive programming library
-- **SmallRye Fault Tolerance**: Rate limiting and resilience patterns
-- **RESTEasy Reactive**: REST API implementation
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Java 21 or higher
+- Java 21
 - Maven 3.8+
 - SMTP server configuration (Gmail, SendGrid, etc.)
 - Secret key for API authentication
 
-### Installation
+### Local Development
 
-1. Clone the repository:
+1. **Set up environment variables**
+
+   ```bash
+   # Create .env file or set environment variables
+   FRONTEND_DOMAIN=http://localhost:3000
+   EMAIL_USERNAME=your-email@gmail.com
+   EMAIL_APP_PASSWORD=your-app-password
+   SECRET_KEY=your-secret-access-key
+   IS_MOCKING=false
+   PORT=8081
+   ```
+
+2. **Run in development mode**
+
+   ```bash
+   ./mvnw quarkus:dev
+   ```
+
+3. **Build and run**
+
+   ```bash
+   ./mvnw clean package
+   java -jar target/quarkus-app/quarkus-run.jar
+   ```
+
+### Docker Deployment
+
 ```bash
-git clone <repository-url>
-cd chatterbox-email-service
-```
+# Build native image
+./mvnw package -Pnative
 
-2. Configure your email settings in `application.properties`:
-```properties
-# SMTP Configuration
-quarkus.mailer.host=smtp.gmail.com
-quarkus.mailer.port=587
-quarkus.mailer.username=your-email@gmail.com
-quarkus.mailer.password=your-app-password
-quarkus.mailer.start-tls=REQUIRED
-quarkus.mailer.from=noreply@chatterbox.com
-
-# Application Configuration
-frontend.domain=https://your-frontend-domain.com/
-secret.key=your-secret-access-key
-```
-
-3. Build the application:
-```bash
-mvn clean package
-```
-
-4. Run in development mode:
-```bash
-mvn quarkus:dev
-```
-
-## API Endpoints
-
-### Send Verification Email
-```
-POST /api/v1/emails/verify
-Content-Type: application/json
-Access-Token: your-secret-key
-
-{
-  "email": "user@example.com",
-  "username": "JohnDoe",
-  "code": "123456"
-}
-```
-
-### Send Password Reset Email
-```
-POST /api/v1/emails/reset-password
-Content-Type: application/json
-Access-Token: your-secret-key
-
-{
-  "email": "user@example.com",
-  "username": "JohnDoe",
-  "code": "abc123def456"
-}
-```
-
-### Health Check
-```
-GET /q/health
-```
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `QUARKUS_MAILER_HOST` | SMTP server hostname | `localhost` |
-| `QUARKUS_MAILER_PORT` | SMTP server port | `587` |
-| `QUARKUS_MAILER_USERNAME` | SMTP authentication username | - |
-| `QUARKUS_MAILER_PASSWORD` | SMTP authentication password | - |
-| `QUARKUS_MAILER_FROM` | Default sender email address | - |
-| `FRONTEND_DOMAIN` | Frontend domain for email links | - |
-| `SECRET_KEY` | API access token for authentication | - |
-
-### Email Templates
-
-Email templates are embedded as HTML strings in the `EmailService` class:
-- **Verification Email**: Contains a verification link and expires in 10 minutes
-- **Password Reset Email**: Contains a reset link and expires in 10 minutes
-
-Both templates include:
-- Responsive HTML design
-- ChatterBox branding
-- Verification/reset links that redirect to the frontend domain
-- Expiration notices and support contact information
-
-## Development
-
-### Running Tests
-```bash
-mvn test
-```
-
-### Building for Production
-```bash
-mvn package -Pnative
-```
-
-### Docker Support
-```bash
-# Build container
+# Build Docker image
 docker build -t chatterbox-email-service .
 
 # Run container
-docker run -p 8080:8080 chatterbox-email-service
+docker run -p 8081:8080 --env-file .env chatterbox-email-service
 ```
 
-## Integration with Main API
+## 🔧 API Endpoints
 
-The main Spring Boot API will communicate with this service via HTTP REST calls. Ensure proper network configuration and service discovery if running in a containerized environment.
+### Email Operations
 
-## Deployment
+- `POST /api/v1/emails/verify` - Send verification email
+- `POST /api/v1/emails/reset-password` - Send password reset email
 
-`chatterbox-email-service` will be deployed to Heroku once connection is implemented between the service and the main `API`.
+### Health & Monitoring
 
-## Security
+- `GET /q/health` - Health check endpoint
 
-The service implements several security measures:
+## 🔒 Security
 
-- **Access Token Authentication**: All endpoints require a valid `Access-Token` header
-- **Rate Limiting**: Each endpoint is limited to 5 requests per 10 minutes per client
-- **Input Validation**: Request bodies are validated for required fields
-- **Error Handling**: Comprehensive exception handling without exposing sensitive information
+- **Access Token Authentication** - All endpoints require valid `Access-Token` header
+- **Rate Limiting** - 20 requests per 5 minutes per endpoint
+- **Input Validation** - Request body validation for required fields
+- **Error Handling** - Structured error responses without sensitive data exposure
 
 ### Error Responses
-
-The service returns structured error responses:
 
 ```json
 {
@@ -179,32 +99,122 @@ The service returns structured error responses:
 ```
 
 **HTTP Status Codes:**
-- `400 Bad Request`: Invalid request body
-- `401 Unauthorized`: Invalid or missing access token
-- `429 Too Many Requests`: Rate limit exceeded
-- `500 Internal Server Error`: Server-side errors
 
-## Troubleshooting
+- `400 Bad Request` - Invalid request body
+- `401 Unauthorized` - Invalid or missing access token
+- `429 Too Many Requests` - Rate limit exceeded
+- `500 Internal Server Error` - Server-side errors
 
-### Logs
+## 📧 Email Templates
 
-Enable debug logging for email operations:
+### Verification Email
+
+- HTML template with ChatterBox branding
+- Verification link with 10-minute expiration
+- Responsive design for mobile and desktop
+
+### Password Reset Email
+
+- HTML template with ChatterBox branding
+- Reset link with 10-minute expiration
+- Support contact information
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `FRONTEND_DOMAIN` | Frontend URL for email links | Yes | - |
+| `EMAIL_USERNAME` | SMTP username (Gmail) | Yes | - |
+| `EMAIL_APP_PASSWORD` | SMTP app password | Yes | - |
+| `SECRET_KEY` | API access token | Yes | - |
+| `IS_MOCKING` | Mock email sending | No | false |
+| `PORT` | Service port | No | 8080 |
+
+### SMTP Configuration
+
 ```properties
-quarkus.log.category."io.quarkus.mailer".level=DEBUG
+quarkus.mailer.host=smtp.gmail.com
+quarkus.mailer.port=587
+quarkus.mailer.start-tls=REQUIRED
+quarkus.mailer.username=${EMAIL_USERNAME}
+quarkus.mailer.password=${EMAIL_APP_PASSWORD}
+quarkus.mailer.from=${EMAIL_USERNAME}
 ```
 
-## Contributing
+## 🧪 Testing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+```bash
+# Run tests
+./mvnw test
 
-## License
+# Run with coverage
+./mvnw test jacoco:report
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+# Integration tests
+./mvnw verify
+```
 
-## Support
+## 📊 Monitoring
 
-For issues and questions, please contact the development team or create an issue in the project repository.
+- **Health Check**: `GET /q/health`
+- **Metrics**: `GET /q/metrics`
+- **Logging**: Quarkus logging with configurable levels
+- **Rate Limiting**: Built-in monitoring and alerts
+
+## 🔄 Integration
+
+### Main API Communication
+The Spring Boot main API communicates with this service via HTTP REST calls:
+
+```java
+// Example from main API
+restClient.post()
+    .uri("/api/v1/emails/verify")
+    .header("Access-Token", accessToken)
+    .body(verifyUserDto)
+    .retrieve();
+```
+
+### Service Discovery
+
+- **Port**: 8081 (configurable)
+- **Health Endpoint**: `/q/health`
+- **Base URL**: Configurable via `EMAIL_SERVICE_URL` in main API
+
+## 🚀 Deployment
+
+### Native Image Build
+
+```bash
+# Build native executable
+./mvnw package -Pnative
+
+# Run native executable
+./target/chatterbox-email-service-1.0.0-SNAPSHOT-runner
+```
+
+### Docker Compose
+
+```yaml
+email-service:
+  image: chatterbox-email-service
+  ports:
+    - "8081:8080"
+  environment:
+    - FRONTEND_DOMAIN=http://localhost:3000
+    - EMAIL_USERNAME=${EMAIL_USERNAME}
+    - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD}
+    - SECRET_KEY=${SECRET_KEY}
+```
+
+## 🤝 Contributing
+
+1. Follow Quarkus best practices
+2. Add tests for new features
+3. Update email templates as needed
+4. Ensure proper error handling
+5. Follow existing code style
+
+---

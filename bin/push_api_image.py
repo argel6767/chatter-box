@@ -6,6 +6,9 @@ import json
 import ssl
 import os
 
+'''
+Pushes the API image to the Docker Registry and updates the Sevalla deployment
+'''
 
 from build_api_image import build_image, check_if_docker_is_running
 
