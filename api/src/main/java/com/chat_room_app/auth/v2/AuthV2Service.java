@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -43,6 +44,7 @@ public class AuthV2Service {
         User user = new User(request.username().toLowerCase(), request.email().toLowerCase(), passwordEncoder.encode(request.password()));
         AuthDetails authDetails = user.getAuthDetails();
         authDetails.setAuthorities("ROLE_USER");
+        authDetails.setCodeExpiryTime(LocalDateTime.now().plusMinutes(10));
         String code = setVerificationCode(authDetails);
         CompletableFuture.runAsync(() -> {
             log.info("Sending email verification request to external email service");
@@ -76,7 +78,7 @@ public class AuthV2Service {
                 log.warning("Failed to POST to email service, and resend verification email");
             }
         }, virtualThreadExecutor);
-        //userRepository.save(user);
+        userRepository.save(user);
     }
 
 

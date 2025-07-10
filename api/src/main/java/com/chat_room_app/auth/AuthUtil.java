@@ -20,6 +20,14 @@ public class AuthUtil {
             log.warning("Invalid email " + request.email());
             throw new BadRequest400Exception(request.email() + " is an invalid email");
         }
+        if (!isValidUsername(request.username())) {
+            log.warning("Invalid username " + request.username());
+            throw new BadRequest400Exception(request.username() + " is an invalid username.");
+        }
+        if (!isValidPassword(request.password())) {
+            log.warning("Invalid password " + request.password());
+            throw new BadRequest400Exception(request.password() + " is an invalid password.");
+        }
         if (userRepository.findByEmail(request.email()).isPresent()) {
             log.warning("User with email " + request.email() + " already exists");
             throw new Conflict409Exception(request.email() + " is already in use");
@@ -39,6 +47,16 @@ public class AuthUtil {
     public static boolean isValidEmail(String email) {
         EmailValidator validator = EmailValidator.getInstance();
         return validator.isValid(email);
+    }
+
+    public static boolean isValidUsername(String username) {
+        if(username == null || username.isEmpty()) {
+            return false;
+        }
+        String regExpn = "^[a-zA-Z0-9_]+$";
+        Pattern pattern = Pattern.compile(regExpn);
+        Matcher matcher = pattern.matcher(username);
+        return matcher.matches();
     }
 
     /**
