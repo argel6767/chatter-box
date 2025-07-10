@@ -5,7 +5,7 @@ Thumbs.db
 
 # Build Files #
 
-bin
+
 target
 build/
 .gradle
@@ -34,7 +34,17 @@ out
 README.html
 
 ## Python
-__pycache__/*
+*/__pycache__/
 
 ## env
 *.env
+
+
+
+#node
+node_modules/*
+
+#java
+.gradle/*
+.idea/*
+.vscode/*
