@@ -6,16 +6,17 @@ import { Search } from "lucide-react";
 import { Input } from "./ui/chat/input";
 import { AnnouncementMessage } from "./ui/annoucementMessage";
 import { Loading } from "./ui/loading";
-import { MemberList } from "@/app/(protected)/chats/components";
+import { UsersList } from "@/app/(protected)/chats/components";
 import { QueriedUserDto } from "@/lib/models/responses";
 import { isFailedResponse } from "@/lib/utils";
 
 interface SearchForUserProps {
     labelText: string;
     children: React.ReactNode
+    onClick: (entity: string) => void;
 }
 
-export const SearchForUser = ({labelText, children}: SearchForUserProps) => {
+export const SearchForUser = ({labelText, children, onClick}: SearchForUserProps) => {
     const [input, setInput] = useState<string>("");
     const [query, setQuery] = useState<string>("");
     const {isFetching, isError, data} = useGetUserQuery(query);
@@ -58,7 +59,7 @@ export const SearchForUser = ({labelText, children}: SearchForUserProps) => {
   const isFetched = () => {
     if (data && !isFailedResponse(data)) {
         return (
-            <MemberList users={data.data as QueriedUserDto[]}/>
+            <UsersList users={data.data as QueriedUserDto[]} onClick={onClick}/>
         )
     }
   }

@@ -1,12 +1,12 @@
 'use client'
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogTrigger,} from "@/components/ui/dialog"
+import {Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/chat/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {useClearStores, useFriendStore, useSearchQueryStore, useUserStore} from "@/hooks/stores"
-import {  MessageCircle, Plus, Search, Settings, Users } from "lucide-react"
+import {MessageCircle, Plus, Search, Settings, Users, X} from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -15,8 +15,8 @@ import { FailedRequest, useFailedRequest } from "@/hooks/use-failed-request"
 import { useToggle } from "@/hooks/use-toggle"
 import { Label } from "@/components/ui/label"
 import { useGetFriendRequests, useGetFriends } from "@/hooks/react-query"
-import { isFailedResponse } from "@/lib/utils"
-import { DirectMessageDto, FriendshipDto, QueriedUserDto } from "@/lib/models/responses"
+import {isFailedResponse, sleep} from "@/lib/utils"
+import {DirectMessageDto, FriendshipDto, QueriedUserDto} from "@/lib/models/responses"
 import { Loading } from "@/components/ui/loading"
 import { ChatBubbleAvatar } from "@/components/ui/chat/chat-bubble"
 import { toast } from "sonner"
@@ -226,36 +226,64 @@ export const GoBackHome = () => {
 }
 
 interface MemberListProps {
-  friends?: FriendshipDto[];
-  users?: QueriedUserDto[];
+    usernames: string[];
+    onClick: (username: string) => void;
 }
 
-export const MemberList = ({friends=[], users=[]}: MemberListProps) => {
+const MemberList = ({usernames, onClick}: MemberListProps) => {
+    const handleClick = (username: string) => {
+        onClick(username);
+    }
+    const {value:isHovering, toggleValue:toggleHover} = useToggle(false); //TODO use hovering to indicate removing a user
 
-  return (
-    <main>
-      <ul>
-      {friends.map((friendship) => {
-          const friend = friendship.friend;
-          const fallBack = friend.username.substring(0,1).toUpperCase();
-        return (
-          <li className="flex justify-around items-center gap-3 p-4 hover:bg-slate-700 hover:cursor-pointer rounded-lg text-sm" key={friend.id}>
-            <ChatBubbleAvatar className="bg-slate-200 text-black" fallback={fallBack}/>
-            <p>{friend.username}</p>
-          </li>)})}
-      </ul>
-      <ul>
-      {users.map((user) => {
-          const fallBack = user.username.substring(0,1).toUpperCase();
-        return (
-          <li className="flex justify-around items-center gap-3 p-4 hover:bg-slate-700 hover:cursor-pointer rounded-lg text-sm" key={user.id}>
-            <ChatBubbleAvatar className="bg-slate-200 text-black" fallback={fallBack}/>
-            <p>{user.username}</p>
-          </li>)})}
-      </ul>
-    </main>
-    
-  )
+    return (
+        <ul className="flex gap-2">
+          {usernames.map((username) => {
+            const fallBack = username.substring(0,1).toUpperCase();
+            return (
+              <li className="flex justify-start items-center gap-2 p-2 hover:bg-slate-700 hover:cursor-pointer rounded-lg" key={username} onClick={() => handleClick(username)}>
+                <ChatBubbleAvatar className="bg-slate-200 text-black" fallback={fallBack}/>
+                  <X className="h-4 w-4 opacity-0 group-hover:opacity-100 text-red-200" />
+              </li>
+            )
+          })}
+        </ul>
+    )
+}
+
+
+interface UserListProps {
+  friends?: FriendshipDto[];
+  users?: QueriedUserDto[];
+  onClick: (entity: string) => void;
+}
+
+export const UsersList = ({friends=[], users=[], onClick}: UserListProps) => {
+
+
+    return (
+        <main>
+          <ul>
+          {friends.map((friendship) => {
+              const friend = friendship.friend;
+              const fallBack = friend.username.substring(0,1).toUpperCase();
+            return (
+              <li className="flex justify-around items-center gap-3 p-4 hover:bg-slate-700 hover:cursor-pointer rounded-lg text-sm" key={friend.id} onClick={() => onClick(friend.username)}>
+                <ChatBubbleAvatar className="bg-slate-200 text-black" fallback={fallBack}/>
+                <p>{friend.username}</p>
+              </li>)})}
+          </ul>
+          <ul>
+          {users.map((user) => {
+              const fallBack = user.username.substring(0,1).toUpperCase();
+            return (
+              <li className="flex justify-around items-center gap-3 p-4 hover:bg-slate-700 hover:cursor-pointer rounded-lg text-sm" key={user.id} onClick={() => onClick(user.username)}>
+                <ChatBubbleAvatar className="bg-slate-200 text-black" fallback={fallBack}/>
+                <p>{user.username}</p>
+              </li>)})}
+          </ul>
+        </main>
+    )
   
 }
 
@@ -264,7 +292,7 @@ const NewChatSheet = () => {
   const {friends} = useFriendStore();
   const [formData, setFormData] = useState<NewChatDto>(
     {name:"",
-    usernames: [user.username]}
+    usernames: [user.username ? user.username : ""]}
   )
   const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
   const {value: isLoading, toggleValue:toggleLoading} = useToggle(false);
@@ -276,22 +304,51 @@ const NewChatSheet = () => {
     }))
   }
 
-  const addMember = (user: string) => {
+  const addMember = (username: string) => {
     setFormData(prevFormData => ({
       ...prevFormData,
-      usernames: [...prevFormData.usernames, user]
+      usernames: Array.from(new Set([...prevFormData.usernames, username]))
     }))
   }
 
-  const removeMember = (user: string) => {
+  const removeMember = (username: string) => {
+      if (username === user.username) {
+          return; //cant remove yourself if making a chat
+      }
     setFormData(prevFormData => ({
       ...prevFormData,
-      usernames: prevFormData.usernames.filter(username => username !== user)
+      usernames: prevFormData.usernames.filter(name => name !== username)
     }))
   }
 
-  const createNewChat = async() => {
+  const resetForm = () => {
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        name: "",
+        usernames: [user.username ? user.username : ""]
+      }))
+  }
 
+  const createNewChat = async(e: React.FormEvent) => {
+      e.preventDefault();
+      toggleLoading();
+      await sleep(3000);
+      toggleLoading();
+  }
+
+  if (isLoading) {
+      return (
+          <Dialog>
+              <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-200" showCloseButton={false} >
+                  <DialogHeader>
+                      <h2>Hang Tight!</h2>
+                      {formData.name === "" ? <p>Your new ChatRoom is being created!</p> :
+                          <p>{"Your ChatRoom " + formData.name + " is being created!"}</p>}
+                  <Loading/>
+                </DialogHeader>
+            </DialogContent>
+         </Dialog>
+    )
   }
 
   return (
@@ -299,8 +356,11 @@ const NewChatSheet = () => {
         <DialogTrigger>
           <Plus className="h-6 w-6 text-gray-400 rounded-full hover:slate-300 hover:cursor-pointer" />
         </DialogTrigger>
-        <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-200">
+        <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-200" showCloseButton={false}>
           <DialogHeader>
+              <DialogClose className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+                           onClick={resetForm}><X className="h-4 w-4" />
+              </DialogClose>
             <DialogTitle className="text-center py-2 text-2xl">Create New Chat</DialogTitle>
             <form onSubmit={createNewChat} className="flex flex-col justify-center gap-6">
               <span className="flex flex-col justify-center gap-2">
@@ -308,10 +368,11 @@ const NewChatSheet = () => {
                 <Input id="name" name="name" value={formData.name} onChange={handleName} placeholder="ex. Coolest Chat Ever"/>
               </span>
               <section className="flex flex-col gap-2">
-                <SearchForUser labelText="Other Users">
+                  <MemberList usernames={formData.usernames} onClick={removeMember}/>
+                <SearchForUser labelText="Other Users" onClick={addMember}>
                   <span className="border-b-2 flex flex-col gap-2">
                     <Label className="text-md">Your friends</Label>
-                    <MemberList friends={friends}/>
+                    <UsersList friends={friends} onClick={addMember}/>
                   </span>
                 </SearchForUser>
               </section>
