@@ -13,6 +13,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     List<User> findAllByUsernameIn(Collection<String> usernames);
     void deleteByUsername(String username);
-    @Query("SELECT u FROM User u WHERE LOWER (u.username) LIKE CONCAT('%', :query, '%')")
-    List<User> findAllByUsernameLike(@Param("query") String query);
+
+    /**
+     * Find all users whose username is like the given query, except for the user themselves, and if they're verified
+     * @param query
+     * @param user
+     * @return
+     */
+    @Query("SELECT u FROM User u WHERE LOWER (u.username) LIKE CONCAT('%', :query, '%') " +
+            "AND LOWER (u.username) != (:user) AND u.authDetails.isVerified = true")
+    List<User> findAllByUsernameLike(@Param("query") String query, @Param("user") String user);
 }

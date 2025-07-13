@@ -50,6 +50,7 @@ public class UserService implements UserDetailsService {
      * @return
      */
     public UserProfileDto getUserProfile(Long searchUserId, Long requesterUserId) {
+        log.info("Fetching user " + searchUserId + ", requested by " + requesterUserId);
         User searchedUser = getUserById(searchUserId);
         User requestingUser = getUserById(requesterUserId);
 

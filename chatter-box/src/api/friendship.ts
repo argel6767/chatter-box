@@ -43,6 +43,16 @@ export const blockUser = async (friendId: number): Promise<ApiResponseWrapper<Fr
     }
 }
 
+export const unBlockUser = async (friendId: number): Promise<ApiResponseWrapper<FriendshipDto | FailedAPIRequestResponse>> => {
+    try {
+        const response = await apiClient.post(RESOURCE_PATH + `/un-block/${friendId}`);
+        return getSuccessfulResponse(response);
+    }
+    catch (error) {
+        return getFailedResponse(error);
+    }
+}
+
 export const getFriends = async (): Promise<ApiResponseWrapper<FriendshipDto[] | FailedAPIRequestResponse>> => {
     try {
         const response = await apiClient.get(RESOURCE_PATH);

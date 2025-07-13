@@ -320,13 +320,17 @@ export const Logo = () => {
     )
 }
 
-export const BackButton = () => {
+interface BackButtonProps {
+    path: string
+}
+
+export const BackButton = ({path}: BackButtonProps) => {
     const router = useRouter();
     return (
         <div className="text-center mb-8">
         <Button
           variant="ghost"
-          onClick={() => router.push("/")}
+          onClick={() => router.push(path)}
           className="absolute top-4 left-4 text-gray-400 hover:text-white hover:bg-white/10"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

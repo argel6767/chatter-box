@@ -12,11 +12,12 @@ import { isFailedResponse } from "@/lib/utils";
 
 interface SearchForUserProps {
     labelText: string;
-    children: React.ReactNode
-    onClick: (entity: string) => void;
+    children?: React.ReactNode
+    addMember?: (entity: string) => void;
+    seeProfile?: (entity: number) => void;
 }
 
-export const SearchForUser = ({labelText, children, onClick}: SearchForUserProps) => {
+export const SearchForUser = ({labelText, children, addMember, seeProfile}: SearchForUserProps) => {
     const [input, setInput] = useState<string>("");
     const [query, setQuery] = useState<string>("");
     const {isFetching, isError, data} = useGetUserQuery(query);
@@ -59,15 +60,15 @@ export const SearchForUser = ({labelText, children, onClick}: SearchForUserProps
   const isFetched = () => {
     if (data && !isFailedResponse(data)) {
         return (
-            <UsersList users={data.data as QueriedUserDto[]} onClick={onClick}/>
+            <UsersList users={data.data as QueriedUserDto[]} addToList={addMember} goToProfile={seeProfile}/>
         )
     }
   }
 
   return (
     <main className="flex flex-col gap-4 motion-preset-fade motion-duration-500">
-        <section className="flex flex-col gap-2 border-b-2 pb-2">
-        <Label>Add members</Label>
+        <section className="flex flex-col gap-2 border-b-2 pb-3">
+        <Label>Search for users</Label>
             <span className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input placeholder="ex. User123"  className="pl-10 bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-slate-400" onChange={handleInputChange} value={input}/>

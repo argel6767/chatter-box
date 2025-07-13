@@ -29,11 +29,13 @@ export interface FriendIdAndNameDto {
     username: string
 }
 
+export type Status = "ACCEPTED" | "PENDING" | "BLOCKED" | "NONE";
+
 export interface FriendshipDto {
     id: number,
     user: FriendIdAndNameDto,
     friend: FriendIdAndNameDto,
-    status: "ACCEPTED" | "PENDING" | "BLOCKED"
+    status: Status
 }
 
 export interface QueriedUserDto {
@@ -43,8 +45,11 @@ export interface QueriedUserDto {
 
 export interface UserProfileDto {
     username: string,
-    friends: FriendIdAndNameDto[] //mutual friends
-    commonChatRooms: ChatRoomDto[]
+    friends: FriendIdAndNameDto[], //mutual friends
+    commonChatRooms: ChatRoomDto[],
+    haveRelationship: boolean,
+    isBlocked: boolean
+    relationshipType: Status,
 }
 
 export interface DirectMessageDto {
