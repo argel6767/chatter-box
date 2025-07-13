@@ -74,7 +74,7 @@ export const changePassword = async (request: ChangePasswordDto): Promise<ApiRes
 
 export const resendVerificationCode = async (username: string): Promise<ApiResponseWrapper<EmailSentSuccessfullyDto | FailedAPIRequestResponse>> => {
     try {
-        const response = await apiClient.post(RESOURCE_PATH_V2 + `/resend/${username}`);
+        const response = await apiClient.post(RESOURCE_PATH_V2 + `/resend-verification/${username}`);
         return getSuccessfulResponse(response);
     }
     catch (error) {

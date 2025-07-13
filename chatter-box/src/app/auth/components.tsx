@@ -15,9 +15,26 @@ import { AnnouncementMessage } from "@/components/ui/annoucementMessage"
 import { useToggle } from "@/hooks/use-toggle"
 import { useFailedRequest } from "@/hooks/use-failed-request"
 
+interface ResendButtonProps {
+    text: string,
+    username: string
+}
+
+const ResendButton = ({text, username}: ResendButtonProps)=>  {
+    const resendEmail = async() => {
+        await resendVerificationCode(username);
+    }
+
+    return (
+        <p className={"mt-auto text-sm"}>{text} Request <button
+            className={"underline underline-offset-4 hover:cursor-pointer hover:text-slate-300"}
+            onClick={resendEmail}>another</button>.</p>
+    )
+}
+
 interface AuthProps {
-  isLoading: boolean,
-  toggleLoading: () => void;
+    isLoading: boolean,
+    toggleLoading: () => void;
 }
 
 export const SignUp = ({isLoading, toggleLoading}: AuthProps) => {
@@ -59,10 +76,6 @@ export const SignUp = ({isLoading, toggleLoading}: AuthProps) => {
         return !(formData.email.length > 0 && formData.username.length > 0 && formData.password.length > 0)
       }
 
-      const resendEmail = async() => {
-         await resendVerificationCode(formData.username);
-      }
-
       if (failedRequest.isFailed) {
           return <AnnouncementMessage message={failedRequest.message} title={"Oops! Something went wrong"}/>
       }
@@ -72,7 +85,7 @@ export const SignUp = ({isLoading, toggleLoading}: AuthProps) => {
               <AnnouncementMessage title={"Account created successfully"}
                 message={"Please look for an email from us to verify your account. You should receive it in the next few minutes. Please check your spam folder."}
               >
-                  <p className={"mt-auto text-sm"}>Never received your email? Request <button className={"underline underline-offset-4 hover:cursor-pointer hover:text-slate-300"} onClick={resendEmail}>another</button>.</p>
+                  <ResendButton text={"Never received your email?"} username={formData.username}/>
               </AnnouncementMessage>
           )
       }
@@ -145,17 +158,36 @@ export const Login = ({isLoading, toggleLoading}: AuthProps) => {
       });
     const {setUser} = useUserStore();
     const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
+    const {value:isNotVerified, toggleValue: toggleIsNotVerified} = useToggle(false);
+
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({
+          ...formData,
+          [e.target.name]: e.target.value
+        });
+      };
+
+    const resetPasswordInput = () => {
+        setFormData((prevState) => ({
+            ...prevState,
+            password:""
+        }));
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         toggleLoading();
         const response = await login(formData);
         if ('errorMessage' in response.data) {
-          toggleLoading();
+            toggleLoading();
             const errorMessage = response.data.errorMessage;
             updateFailedRequest(true, errorMessage);
+            if (response.statusCode === 401) {
+                toggleIsNotVerified();
+            }
             await sleep(2500);
-            setFormData({username:"", password: ""});
+            resetPasswordInput();
             resetFailedRequest();
         }
         else {
@@ -165,14 +197,6 @@ export const Login = ({isLoading, toggleLoading}: AuthProps) => {
             router.push("/chats");
         }
     }
-
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({
-          ...formData,
-          [e.target.name]: e.target.value
-        });
-      };
 
       const isFieldsFilled = () => {
         return !(formData.username.length > 0 && formData.password.length > 0);
@@ -247,6 +271,9 @@ export const Login = ({isLoading, toggleLoading}: AuthProps) => {
               </Button>
             </CardFooter>
             </form>
+                <footer className={"text-slate-300 p-2 text-center"}>
+                    {isNotVerified && <ResendButton text={"Verification code expire?"} username={formData.username}/>}
+                </footer>
             </Card>
         </main>
     )
