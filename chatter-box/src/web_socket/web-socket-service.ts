@@ -2,7 +2,7 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { UpdateMessageDto} from "@/lib/models/requests";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
 
 export class WebSocketService {
     client: Client | null;
