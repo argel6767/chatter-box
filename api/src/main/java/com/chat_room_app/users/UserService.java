@@ -3,6 +3,7 @@ package com.chat_room_app.users;
 import com.chat_room_app.chatroom.dtos.ChatRoomIdAndNameDto;
 import com.chat_room_app.exceptions.custom_exceptions.BadRequest400Exception;
 import com.chat_room_app.exceptions.custom_exceptions.NotFound404Exception;
+import com.chat_room_app.exceptions.custom_exceptions.UnAuthorized401Exception;
 import com.chat_room_app.friends.FriendStatus;
 import com.chat_room_app.friends.Friendship;
 import com.chat_room_app.friends.dtos.FriendIdAndNameDto;
@@ -14,10 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,6 +52,8 @@ public class UserService implements UserDetailsService {
         User searchedUser = getUserById(searchUserId);
         User requestingUser = getUserById(requesterUserId);
 
+        FriendStatus status = getRelationshipStatus(requestingUser, searchedUser);
+
         Set<ChatRoomIdAndNameDto> commonChatRooms = searchedUser.getChatRooms().stream()
                 .filter(chatRoom -> chatRoom.getMembers().containsAll(List.of(searchedUser, requestingUser)))
                 .map(chatRoom -> new ChatRoomIdAndNameDto(chatRoom.getId(), chatRoom.getName()))
@@ -62,7 +62,39 @@ public class UserService implements UserDetailsService {
         Set<FriendIdAndNameDto> mutualFriends = getMutualFriends(searchedUser, requestingUser);
 
         log.info("fetched profile for " + searchedUser.getUsername());
-        return new UserProfileDto(searchedUser.getUsername(), mutualFriends, commonChatRooms);
+        return new UserProfileDto(searchedUser.getUsername(), mutualFriends, commonChatRooms, status);
+    }
+
+    /**
+     * Gets the relationship status between two users
+     * @param requester The user making the request
+     * @param target The user being searched
+     * @return FriendStatus representing the relationship
+     */
+    private FriendStatus getRelationshipStatus(User requester, User target) {
+        // Check if requester sent a friendship request to target
+        Optional<Friendship> sentFriendship = requester.getSentFriendships().stream()
+                .filter(friendship -> friendship.getReceiver().getId().equals(target.getId()))
+                .findFirst();
+
+        if (sentFriendship.isPresent()) {
+            return sentFriendship.get().getStatus();
+        }
+
+        // Check if requester received a friendship request from target
+        Optional<Friendship> receivedFriendship = requester.getReceivedFriendships().stream()
+                .filter(friendship -> friendship.getRequester().getId().equals(target.getId()))
+                .findFirst();
+
+        if (receivedFriendship.isPresent()) {
+            if (receivedFriendship.get().getStatus().equals(FriendStatus.BLOCKED)) {
+                throw new UnAuthorized401Exception("You are blocked by the user  " + target.getUsername());
+            }
+            return receivedFriendship.get().getStatus();
+        }
+
+        // No relationship exists
+        return FriendStatus.NONE; // Assuming you have a NONE status in your enum
     }
 
     private Set<FriendIdAndNameDto> getMutualFriends(User user1, User user2) {
