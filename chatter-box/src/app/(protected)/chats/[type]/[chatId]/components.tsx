@@ -166,13 +166,6 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
     }, [chatRoom.data]);
 
     useEffect(() => {
-        setChatRoomDetails({
-            creator: "",
-            id: 0,
-            members: [],
-            messages: [],
-            name: ""
-        });
         setIsFailed(false);
         setErrorMessage("");
         setSubscribed(false);
