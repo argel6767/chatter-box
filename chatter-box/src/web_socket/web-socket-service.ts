@@ -27,7 +27,11 @@ export class WebSocketService {
 
         this.connectionPromise = new Promise((resolve, reject) => {
             this.client = new Client({
-                webSocketFactory: () => new SockJS(`${this.baseUrl}/ws`),
+                webSocketFactory: () => new SockJS(`${this.baseUrl}/ws`,undefined,
+                    {
+                        transports: ['websocket'],  // optional: skip polling transports
+                        withCredentials: true      // ← this is the key
+                    } as any),
                 debug: (str) => {
                     console.log('STOMP Debug:', str);
                 },

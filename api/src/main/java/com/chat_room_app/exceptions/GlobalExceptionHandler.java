@@ -84,4 +84,11 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(new FailedAPIRequestResponse(sue.getMessage(), request.getRequestURI()));
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<FailedAPIRequestResponse> handleRuntimeException(RuntimeException re, HttpServletRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new FailedAPIRequestResponse(re.getMessage(), request.getRequestURI()));
+    }
 }

@@ -1,5 +1,6 @@
 package com.chat_room_app.web_socket;
 
+import com.chat_room_app.jwt.JwtHandshakeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,8 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
 	@Autowired
 	private WebSocketAuthInterceptor webSocketAuthInterceptor;
+	@Autowired
+	JwtHandshakeInterceptor jwtHandshakeInterceptor;
 
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -29,6 +32,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
 		registry.addEndpoint("/ws")
 				.setAllowedOrigins(frontendDomain)
+				.addInterceptors(jwtHandshakeInterceptor)
 				.withSockJS();
 	}
 
