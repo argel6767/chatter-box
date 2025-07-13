@@ -48,7 +48,7 @@ export interface UserProfileDto {
     username: string,
     friends: FriendIdAndNameDto[], //mutual friends
     commonChatRooms: ChatRoomDto[],
-    relationshipType: Status,
+    status: Status,
 }
 
 export interface DirectMessageDto {

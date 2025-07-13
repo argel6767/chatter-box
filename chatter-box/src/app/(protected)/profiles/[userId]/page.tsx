@@ -33,20 +33,23 @@ export default async function UserProfile({params}: PageProps) {
     }
     else {
         const user = response.data as UserProfileDto;
+        const formattedUsername = user.username.substring(0,1).toUpperCase().concat(user.username.substring(1));
         return (
             <main className={"min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-300 p-4 gap-6"}>
                 <BackButton path={"/chats"}/>
                 <ChatBubbleAvatar fallback={user.username.substring(0,1).toUpperCase()} className={"text-5xl size-32 text-black"}/>
-                <FriendStatus userId={user.id} relationStatus={user.relationshipType}/>
-                <h1 className={"text-2xl"}>{user.username}</h1>
-                <section className={"flex flex-col gap-2"}>
-                    <h2 className={"text-xl"}>Common Friends</h2>
+                <h1 className={"text-4xl"}>{formattedUsername}</h1>
+                <FriendStatus userId={user.id} relationStatus={user.status}/>
+                <span className={"flex gap-8"}>
+                   <section className={"flex flex-col gap-2"}>
+                    <h2 className={"text-2xl italic"}>Common Friends</h2>
                     <CommonFriends friends={user.friends}/>
                 </section>
                 <section className={"flex flex-col gap-2"}>
-                    <h2 className={"text-xl"}>Common ChatRooms</h2>
+                    <h2 className={"text-2xl italic"}>Common ChatRooms</h2>
                     <CommonChatRooms chatRooms={user.commonChatRooms}/>
                 </section>
+                </span>
             </main>
         )
     }

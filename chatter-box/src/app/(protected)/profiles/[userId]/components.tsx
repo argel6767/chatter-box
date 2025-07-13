@@ -20,6 +20,8 @@ export const FriendStatus = ({userId, relationStatus}: FriendStatusProps) => {
     const {value: isSendingBlockRequest, toggleValue: toggleSendingBlockRequest} = useToggle(false);
     const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
 
+    console.log(relationStatus);
+
     const handleBlock = async() => {
         toggleSendingBlockRequest();
         const response = await blockUser(userId);
@@ -74,18 +76,7 @@ export const FriendStatus = ({userId, relationStatus}: FriendStatusProps) => {
     }
 
     return (
-        <main>
-            {/* Block/Unblock Button */}
-            {relationshipStatus === "BLOCKED" ? (
-                <Button onClick={handleUnBlock} disabled={isSendingBlockRequest || isSendingBlockRequest}>
-                    {isSendingBlockRequest ? "Unblocking..." : "Unblock User"}
-                </Button>
-            ) : (
-                <Button onClick={handleBlock} disabled={isSendingBlockRequest || isSendingBlockRequest}>
-                    {isSendingBlockRequest ? "Blocking..." : "Block User"}
-                </Button>
-            )}
-
+        <main className={"flex flex-col gap-2"}>
             {/* Friend Request Button - only show if not blocked and no existing relation */}
             {relationshipStatus !== "BLOCKED" && (
                 <>
@@ -98,6 +89,17 @@ export const FriendStatus = ({userId, relationStatus}: FriendStatusProps) => {
                     {relationshipStatus === "PENDING" && <p>Friend request sent</p>}
                     {relationshipStatus === "ACCEPTED" && <p>You are friends</p>}
                 </>
+            )}
+
+            {/* Block/Unblock Button */}
+            {relationshipStatus === "BLOCKED" ? (
+                <Button onClick={handleUnBlock} disabled={isSendingBlockRequest || isSendingBlockRequest}>
+                    {isSendingBlockRequest ? "Unblocking..." : "Unblock User"}
+                </Button>
+            ) : (
+                <Button onClick={handleBlock} disabled={isSendingBlockRequest || isSendingBlockRequest}>
+                    {isSendingBlockRequest ? "Blocking..." : "Block User"}
+                </Button>
             )}
         </main>
     );
