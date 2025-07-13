@@ -9,7 +9,6 @@ export const useGetChatRoom = (chatRoomId: number) => {
         queryFn: async () => {
             return await getChatRoom(chatRoomId);
         },
-        staleTime: 0
     })
 }
 

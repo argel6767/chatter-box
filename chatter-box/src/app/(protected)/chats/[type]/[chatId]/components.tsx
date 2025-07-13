@@ -175,6 +175,7 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
         setErrorMessage("");
         setSubscribed(false);
         subscriptionAttemptRef.current = false;
+        chatRoom.refetch()
     }, [id]);
 
     // Message handlers
