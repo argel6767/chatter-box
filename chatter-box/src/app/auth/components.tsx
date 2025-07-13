@@ -7,7 +7,7 @@ import { ArrowLeft, Eye, EyeOff, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import {AuthenticateUserDto} from "@/lib/models/requests";
-import {login, register} from "@/api/auths";
+import {login, register, resendVerificationCode} from "@/api/auths";
 import {isFailedResponse, sleep} from "@/lib/utils";
 import { useUserStore} from "@/hooks/stores";
 import { LoadingSpinner} from "@/components/ui/loading";
@@ -59,6 +59,10 @@ export const SignUp = ({isLoading, toggleLoading}: AuthProps) => {
         return !(formData.email.length > 0 && formData.username.length > 0 && formData.password.length > 0)
       }
 
+      const resendEmail = async() => {
+         await resendVerificationCode(formData.username);
+      }
+
       if (failedRequest.isFailed) {
           return <AnnouncementMessage message={failedRequest.message} title={"Oops! Something went wrong"}/>
       }
@@ -66,8 +70,10 @@ export const SignUp = ({isLoading, toggleLoading}: AuthProps) => {
       if (isRegistered) {
           return (
               <AnnouncementMessage title={"Account created successfully"}
-                message={"Please look for an email from us to verify your account. If you don't receive an email. Please check your spam folder."}
-              />
+                message={"Please look for an email from us to verify your account. You should receive it in the next few minutes. Please check your spam folder."}
+              >
+                  <p className={"mt-auto text-sm"}>Never received your email? Request <button className={"underline underline-offset-4 hover:cursor-pointer hover:text-slate-300"} onClick={resendEmail}>another</button>.</p>
+              </AnnouncementMessage>
           )
       }
 
