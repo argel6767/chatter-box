@@ -266,7 +266,7 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
     }
 
     return (
-        <main className={"flex flex-col items-center justify-center bg-black/10 w-full pt-2 pb-4 max-h-screen"}>
+        <main className={"flex flex-col items-center justify-center bg-black/10 w-full pt-2 pb-4 max-h-screen min-h-screen shadow-lg"}>
                 <h1 className={"text-5xl font-bold text-slate-200 pt-2"}>{chatRoomDetails.name}</h1>
                 <div className="max-h-5/6 overflow-y-scroll w-full py-2">
                 <ChatMessageList>
@@ -286,7 +286,7 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
                     })}
                 </ChatMessageList>
             </div>
-            <span className="max-h-1/6">
+            <span className="max-h-1/6 mt-auto">
                 <ChatInputWrapper id={id}/>
             </span>
         </main>

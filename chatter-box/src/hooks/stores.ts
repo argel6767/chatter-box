@@ -1,6 +1,6 @@
 import {create} from 'zustand'
 import {User} from '@/lib/models/models'
-import { FriendshipDto } from '@/lib/models/responses';
+import {ChatRoomDto, FriendshipDto} from '@/lib/models/responses';
 import { useProtectedContext } from '@/app/(protected)/protected-route';
 
 interface SearchQueryStore {
@@ -17,12 +17,14 @@ interface UserStore {
     user: User;
     setUser: (newUser: User) => void;
     removeUser: () => void;
+    addChat: (chat: ChatRoomDto) => void;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
     user: typeof window !== 'undefined' && localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : {},
     setUser: (newUser: User) => set(() => ({ user: newUser })),
-    removeUser: () => set(() => ({ user: undefined }))
+    removeUser: () => set(() => ({ user: undefined })),
+    addChat: (chat: ChatRoomDto) => set((prevUser) => ({...prevUser,  chatRooms: [...prevUser.user.chatRooms, chat]})),
 }));
 
 interface FriendStore {

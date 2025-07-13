@@ -16,12 +16,14 @@ import { useToggle } from "@/hooks/use-toggle"
 import { Label } from "@/components/ui/label"
 import { useGetFriendRequests, useGetFriends } from "@/hooks/react-query"
 import {isFailedResponse, sleep} from "@/lib/utils"
-import {DirectMessageDto, FriendshipDto, QueriedUserDto} from "@/lib/models/responses"
+import {ChatRoomDto, DirectMessageDto, FriendshipDto, QueriedUserDto} from "@/lib/models/responses"
 import { Loading } from "@/components/ui/loading"
 import { ChatBubbleAvatar } from "@/components/ui/chat/chat-bubble"
 import { toast } from "sonner"
 import { logout } from "@/api/auths"
 import { SearchForUser } from "@/components/search-for-user"
+import {createChatRoom} from "@/api/chatroom";
+import {ChatRoom} from "@/lib/models/models";
 
 const Logout =  () => {
 
@@ -233,17 +235,18 @@ interface MemberListProps {
 const MemberList = ({usernames, onClick}: MemberListProps) => {
     const handleClick = (username: string) => {
         onClick(username);
+        toggleHover();
     }
-    const {value:isHovering, toggleValue:toggleHover} = useToggle(false); //TODO use hovering to indicate removing a user
+    const {value:isHovering, toggleValue:toggleHover} = useToggle(false);
 
     return (
         <ul className="flex gap-2">
           {usernames.map((username) => {
             const fallBack = username.substring(0,1).toUpperCase();
             return (
-              <li className="flex justify-start items-center gap-2 p-2 hover:bg-slate-700 hover:cursor-pointer rounded-lg" key={username} onClick={() => handleClick(username)}>
-                <ChatBubbleAvatar className="bg-slate-200 text-black" fallback={fallBack}/>
-                  <X className="h-4 w-4 opacity-0 group-hover:opacity-100 text-red-200" />
+              <li className="flex justify-start items-center gap-2 p-2 hover:bg-slate-700 hover:cursor-pointer rounded-lg"
+                  key={username} onClick={() => handleClick(username)} onMouseEnter={toggleHover} onMouseLeave={toggleHover}>
+                <ChatBubbleAvatar className={`bg-slate-200 ${isHovering? "text-red-500" : "text-black"}`} fallback={isHovering? "X" : fallBack}/>
               </li>
             )
           })}
@@ -288,7 +291,7 @@ export const UsersList = ({friends=[], users=[], onClick}: UserListProps) => {
 }
 
 const NewChatSheet = () => {
-  const {user} = useUserStore();
+  const {user, addChat} = useUserStore();
   const {friends} = useFriendStore();
   const [formData, setFormData] = useState<NewChatDto>(
     {name:"",
@@ -296,6 +299,7 @@ const NewChatSheet = () => {
   )
   const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
   const {value: isLoading, toggleValue:toggleLoading} = useToggle(false);
+  const router = useRouter();
 
   const handleName = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prevFormData => ({
@@ -332,23 +336,47 @@ const NewChatSheet = () => {
   const createNewChat = async(e: React.FormEvent) => {
       e.preventDefault();
       toggleLoading();
-      await sleep(3000);
-      toggleLoading();
+      const response = await createChatRoom(formData);
+      if (isFailedResponse(response)) {
+          toggleLoading();
+          updateFailedRequest(true, "Sorry, your chat failed to be created! Try again later.");
+          await sleep(2000);
+          resetFailedRequest();
+      }
+      else {
+          const data = response.data as ChatRoom;
+          const chatDto: ChatRoomDto = {id: data.id, name:data.name};
+          addChat(chatDto);
+          router.push(`/chats/room/${data.id}`);
+      }
   }
 
   if (isLoading) {
       return (
           <Dialog>
               <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-200" showCloseButton={false} >
-                  <DialogHeader>
-                      <h2>Hang Tight!</h2>
+                  <DialogHeader className={"flex flex-col justify-center items-center gap-4"}>
+                      <DialogTitle className={"text-2xl"}>Hang Tight!</DialogTitle>
                       {formData.name === "" ? <p>Your new ChatRoom is being created!</p> :
                           <p>{"Your ChatRoom " + formData.name + " is being created!"}</p>}
-                  <Loading/>
+                  <Loading variant={"dots"} size={"xl"} />
                 </DialogHeader>
             </DialogContent>
          </Dialog>
     )
+  }
+
+  if (failedRequest.isFailed) {
+      return (
+          <Dialog>
+              <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-200" showCloseButton={false} >
+                  <DialogHeader className={"flex flex-col justify-center items-center gap-4"}>
+                      <DialogTitle className={"text-2xl"}>Something went wrong!</DialogTitle>
+                      <p>{failedRequest.message}</p>
+                  </DialogHeader>
+              </DialogContent>
+          </Dialog>
+      )
   }
 
   return (
@@ -456,10 +484,10 @@ export const DirectMessageList = () => {
             <div className="flex-1 overflow-y-auto motion-preset-blur-right motion-duration-500">
             <div className="p-4 border-t border-white/10">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wide">Direct Messages</h3>
-                <Button size="sm" variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/10 p-1">
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wide">Direct Messages (coming soon)</h3>
+                  {/*<Button size="sm" variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/10 p-1">
+                      <Plus className="h-4 w-4"/>
+                  </Button>*/}
               </div>
               
               <div className="space-y-1">

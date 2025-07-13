@@ -23,7 +23,7 @@ public class ChatRoom {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String name = "Chatroom " + id;
+    private String name;
 
     private String chatRoomCreator;
 
