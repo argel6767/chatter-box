@@ -89,7 +89,7 @@ public class JwtService {
         jwtCookie.setSecure(isSecureCookie); // For HTTPS, will be false during DEV, true during PROD
         jwtCookie.setPath("/"); // Global path
         jwtCookie.setMaxAge((int) (expiration/ 1000)); // Convert from ms to seconds
-        String cookieHeader = String.format("%s=%s; Max-Age=%d; Path=%s; HttpOnly; Secure; SameSite=Strict",
+        String cookieHeader = String.format("%s=%s; Max-Age=%d; Path=%s; HttpOnly; Secure; SameSite=None",
                 jwtCookie.getName(), jwtCookie.getValue(), jwtCookie.getMaxAge(), jwtCookie.getPath());
         return cookieHeader;
     }
