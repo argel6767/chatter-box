@@ -50,6 +50,8 @@ export const getUserProfile = async (searchedUserId: number, cookies: string): P
     }
     catch (error) {
         console.error("API call failed:", error);
+        console.error(error)
+        console.error("id: " + searchedUserId + " cookies" + cookies)
         return getFailedResponse(error);
     }
 }
