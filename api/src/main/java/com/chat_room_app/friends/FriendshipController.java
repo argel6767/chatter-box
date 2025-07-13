@@ -44,6 +44,13 @@ public class FriendshipController {
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
+    @DeleteMapping("/un-block/{friendId}")
+    public ResponseEntity<String> unBlockFriendship(@PathVariable("friendId") long friendId) {
+        Long userId = JwtUtils.getCurrentUserId();
+        friendshipService.unBlockUser(userId, friendId);
+        return new ResponseEntity<>("User unblocked", HttpStatus.NO_CONTENT);
+    }
+
     @GetMapping()
     public ResponseEntity<Set<FriendshipDto>> getFriends() {
         Long userId = JwtUtils.getCurrentUserId();

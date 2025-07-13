@@ -1,5 +1,6 @@
 package com.chat_room_app.friends;
 
+import com.chat_room_app.exceptions.custom_exceptions.BadRequest400Exception;
 import com.chat_room_app.exceptions.custom_exceptions.Conflict409Exception;
 import com.chat_room_app.exceptions.custom_exceptions.NotFound404Exception;
 import com.chat_room_app.friends.dtos.FriendIdAndNameDto;
@@ -104,6 +105,16 @@ public class FriendshipService {
 
         friendshipRepository.save(blockFriendship);
         return createFriendshipDto(blockFriendship.getId(), user, blockedUser, FriendStatus.BLOCKED);
+    }
+
+    public void unBlockUser(Long userId, Long blockId) {
+        if (userId.equals(blockId)) {
+            throw new Conflict409Exception("Cannot block yourself");
+        }
+
+        Friendship blockRelationship = friendshipRepository.findByRequesterIdAndReceiverId(userId, blockId)
+                .orElseThrow(() -> new BadRequest400Exception("User is not blocked"));
+        friendshipRepository.delete(blockRelationship);
     }
 
     /**

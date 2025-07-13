@@ -47,8 +47,7 @@ export const FriendStatus = ({userId, relationStatus}: FriendStatusProps) => {
             resetFailedRequest();
         }
         else {
-            const data = response.data as FriendshipDto;
-            setRelationshipStatus(data.status);
+            setRelationshipStatus("NONE");
         }
     }
 
