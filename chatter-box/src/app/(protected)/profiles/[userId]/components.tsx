@@ -90,11 +90,10 @@ export const FriendStatus = ({userId, relationStatus}: FriendStatusProps) => {
             {relationshipStatus !== "BLOCKED" && (
                 <>
                     {relationshipStatus === "NONE" && (
-                        <Button onClick={handleFriendRequest} disabled={isSendingBlockRequest || isSendingBlockRequest}>
+                        <Button onClick={handleFriendRequest} disabled={isSendingBlockRequest || isSendingFriendRequest}>
                             {isSendingFriendRequest ? "Sending Request..."
                                 : "Send Friend Request"}
                         </Button>)}
-
                     {/* Show status for existing relations */}
                     {relationshipStatus === "PENDING" && <p>Friend request sent</p>}
                     {relationshipStatus === "ACCEPTED" && <p>You are friends</p>}

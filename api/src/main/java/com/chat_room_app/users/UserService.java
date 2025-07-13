@@ -62,7 +62,7 @@ public class UserService implements UserDetailsService {
         Set<FriendIdAndNameDto> mutualFriends = getMutualFriends(searchedUser, requestingUser);
 
         log.info("fetched profile for " + searchedUser.getUsername());
-        return new UserProfileDto(searchedUser.getUsername(), mutualFriends, commonChatRooms, status);
+        return new UserProfileDto(searchedUser.getId(), searchedUser.getUsername(), mutualFriends, commonChatRooms, status);
     }
 
     /**

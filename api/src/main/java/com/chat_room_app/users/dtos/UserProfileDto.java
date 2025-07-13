@@ -6,5 +6,5 @@ import com.chat_room_app.friends.dtos.FriendIdAndNameDto;
 import java.util.Set;
 
 
-public record UserProfileDto(String username, Set<FriendIdAndNameDto> friends, Set<ChatRoomIdAndNameDto> commonChatRooms, FriendStatus status) {
+public record UserProfileDto(Long id, String username, Set<FriendIdAndNameDto> friends, Set<ChatRoomIdAndNameDto> commonChatRooms, FriendStatus status) {
 }
