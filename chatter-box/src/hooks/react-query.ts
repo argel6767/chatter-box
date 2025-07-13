@@ -8,7 +8,8 @@ export const useGetChatRoom = (chatRoomId: number) => {
         queryKey: ["chats", chatRoomId],
         queryFn: async () => {
             return await getChatRoom(chatRoomId);
-        }
+        },
+        staleTime: 0
     })
 }
 
