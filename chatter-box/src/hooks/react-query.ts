@@ -12,14 +12,6 @@ export const useGetChatRoom = (chatRoomId: number) => {
     })
 }
 
-export const useGetUserProfile = (searchedUserId: number) => {
-    return useQuery({
-        queryKey: ["user", searchedUserId],
-        queryFn: async () => {
-            return await getUserProfile(searchedUserId);
-        }
-    })
-}
 
 export const useGetFriends = (userId: number) => {
     return useQuery({
