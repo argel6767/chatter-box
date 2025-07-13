@@ -94,7 +94,7 @@ public class UserService implements UserDetailsService {
         }
 
         // No relationship exists
-        return FriendStatus.NONE; // Assuming you have a NONE status in your enum
+        return FriendStatus.NONE;
     }
 
     private Set<FriendIdAndNameDto> getMutualFriends(User user1, User user2) {
@@ -130,7 +130,7 @@ public class UserService implements UserDetailsService {
      * @param query
      * @return
      */
-    public List<QueriedUserDto> queryUsers(String query) {
+    public List<QueriedUserDto> queryUsers(String query, String username) {
         if (query == null || query.isBlank()) {
             throw new BadRequest400Exception("Query cannot be empty");
         }
@@ -140,7 +140,7 @@ public class UserService implements UserDetailsService {
             return new ArrayList<>();
         }
         log.info("fetch users with query: "+ query);
-        List<User> queriedUsers = userRepository.findAllByUsernameLike(query);
+        List<User> queriedUsers = userRepository.findAllByUsernameLike(query, username);
         return queriedUsers.stream()
                 .map(user -> new QueriedUserDto(user.getId(), user.getUsername())).toList();
     }

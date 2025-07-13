@@ -43,7 +43,8 @@ public class UserController {
 
     @GetMapping("/query")
     public ResponseEntity<List<QueriedUserDto>> queryUsers(@RequestParam String query) {
-        List<QueriedUserDto> dto = userService.queryUsers(query);
+        String username = JwtUtils.getCurrentUserUsername();
+        List<QueriedUserDto> dto = userService.queryUsers(query, username);
         return ResponseEntity.ok(dto);
     }
     

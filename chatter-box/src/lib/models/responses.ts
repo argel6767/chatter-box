@@ -44,11 +44,10 @@ export interface QueriedUserDto {
 }
 
 export interface UserProfileDto {
+    id: number,
     username: string,
     friends: FriendIdAndNameDto[], //mutual friends
     commonChatRooms: ChatRoomDto[],
-    haveRelationship: boolean,
-    isBlocked: boolean
     relationshipType: Status,
 }
 
