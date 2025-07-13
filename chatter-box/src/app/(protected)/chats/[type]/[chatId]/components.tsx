@@ -19,6 +19,7 @@ import {AnnouncementMessage} from "@/components/ui/annoucementMessage";
 import {LoadingSpinner} from "@/components/ui/loading";
 import {useRouter} from "next/navigation";
 import { isFailedResponse } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Variant = "received" | "sent";
 
@@ -133,6 +134,7 @@ interface ChatContainerProps {
 
 export const ChatContainer = ({id}: ChatContainerProps) => {
     const chatRoom = useGetChatRoom(id);
+    const queryClient = useQueryClient();
     const webSocket = useWebSocket(id);
     const [isFailed, setIsFailed] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -175,8 +177,8 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
         setErrorMessage("");
         setSubscribed(false);
         subscriptionAttemptRef.current = false;
-        chatRoom.refetch()
-    }, [id]);
+        queryClient.invalidateQueries({queryKey:["chats", id]});
+    }, [id, queryClient]);
 
     // Message handlers
     const handleMessage = useCallback((message: Message) => {
