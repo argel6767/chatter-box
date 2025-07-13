@@ -163,6 +163,20 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
         }
     }, [chatRoom.data]);
 
+    useEffect(() => {
+        setChatRoomDetails({
+            creator: "",
+            id: 0,
+            members: [],
+            messages: [],
+            name: ""
+        });
+        setIsFailed(false);
+        setErrorMessage("");
+        setSubscribed(false);
+        subscriptionAttemptRef.current = false;
+    }, [id]);
+
     // Message handlers
     const handleMessage = useCallback((message: Message) => {
         setChatRoomDetails((prev: ChatRoom) => ({

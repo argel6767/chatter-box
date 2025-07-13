@@ -32,9 +32,6 @@ export class WebSocketService {
                         transports: ['websocket'],  // optional: skip polling transports
                         withCredentials: true      // ← this is the key
                     } as any),
-                debug: (str) => {
-                    console.log('STOMP Debug:', str);
-                },
                 reconnectDelay: 5000,
                 heartbeatIncoming: 4000,
                 heartbeatOutgoing: 4000,

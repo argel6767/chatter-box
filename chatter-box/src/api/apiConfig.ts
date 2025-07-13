@@ -41,7 +41,6 @@ export const getFailedResponse = (error: unknown) => {
     }
     const errorBody = error?.response?.data;
     const statusCode = error?.response?.status;
-    console.error(failedCallMessage(error));
     return createResponseWrapper<FailedAPIRequestResponse>(errorBody, statusCode!);
 }
 
