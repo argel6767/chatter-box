@@ -38,20 +38,12 @@ export const queryUsers= async(query: string): Promise<ApiResponseWrapper<Querie
     }
 }
 
-export const getUserProfile = async (searchedUserId: number, cookies: string): Promise<ApiResponseWrapper<UserProfileDto | FailedAPIRequestResponse>> => {
+export const getUserProfile = async (searchedUserId: number): Promise<ApiResponseWrapper<UserProfileDto | FailedAPIRequestResponse>> => {
     try {
-        const response = await apiClient.get(RESOURCE_PATH + `/${searchedUserId}`,
-            {
-                headers : {
-                    Cookie: cookies
-                }
-            });
+        const response = await apiClient.get(RESOURCE_PATH + `/${searchedUserId}`);
         return getSuccessfulResponse(response);
     }
     catch (error) {
-        console.error("API call failed:", error);
-        console.error(error)
-        console.error("id: " + searchedUserId + " cookies" + cookies)
         return getFailedResponse(error);
     }
 }

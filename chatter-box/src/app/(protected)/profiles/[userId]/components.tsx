@@ -1,13 +1,16 @@
 'use client'
-import {ChatRoomDto, FriendIdAndNameDto, FriendshipDto, Status} from "@/lib/models/responses";
+import {ChatRoomDto, FriendIdAndNameDto, FriendshipDto, Status, UserProfileDto} from "@/lib/models/responses";
 import {ChatBubbleAvatar} from "@/components/ui/chat/chat-bubble";
 import Link from "next/link";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useToggle} from "@/hooks/use-toggle";
 import {blockUser, sendFriendRequest, unBlockUser} from "@/api/friendship";
 import {useFailedRequest} from "@/hooks/use-failed-request";
 import {isFailedResponse, sleep} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
+import {useGetUserProfile} from "@/hooks/react-query";
+import {Loading} from "@/components/ui/loading";
+import {AnnouncementMessage} from "@/components/ui/annoucementMessage";
 
 interface FriendStatusProps {
     userId: number
@@ -19,8 +22,6 @@ export const FriendStatus = ({userId, relationStatus}: FriendStatusProps) => {
     const {value: isSendingFriendRequest, toggleValue:toggleSendingFriendRequest} = useToggle(false);
     const {value: isSendingBlockRequest, toggleValue: toggleSendingBlockRequest} = useToggle(false);
     const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
-
-    console.log(relationStatus);
 
     const handleBlock = async() => {
         toggleSendingBlockRequest();
@@ -68,14 +69,14 @@ export const FriendStatus = ({userId, relationStatus}: FriendStatusProps) => {
 
     if (failedRequest.isFailed) {
         return (
-            <main>
+            <main className={"text-center"}>
                 <p>{failedRequest.message}</p>
             </main>
         )
     }
 
     return (
-        <main className={"flex flex-col gap-2"}>
+        <main className={"flex justify-center gap-2"}>
             {/* Friend Request Button - only show if not blocked and no existing relation */}
             {relationshipStatus !== "BLOCKED" && (
                 <>
@@ -141,5 +142,74 @@ export const CommonFriends = ({friends} : CommonFriendsProps) => {
                 </li>)
             })}
         </ul>
+    )
+}
+interface UserInfoProps {
+    id: number
+}
+
+export const UserInfo = ({id}: UserInfoProps) => {
+    const profile = useGetUserProfile(id);
+    const {failedRequest, updateFailedRequest} = useFailedRequest();
+    const [user, setUser] = useState<UserProfileDto>({
+        commonChatRooms: [],
+        friends: [],
+        id: 0,
+        status: "NONE",
+        username: ""
+    })
+
+    useEffect(() => {
+        if (profile.data) {
+            const response = profile.data
+            if (isFailedResponse(response)) {
+                updateFailedRequest(true, response.data.errorMessage)
+            }
+            else {
+                const userData = response.data as UserProfileDto;
+                setUser(userData)
+            }
+        }
+    }, [profile.data, updateFailedRequest]);
+
+    if (profile.isFetching || profile.isLoading) {
+        return (
+            <main className={"flex justify-center"}>
+                <Loading size={"xl"}/>
+            </main>
+        )
+    }
+
+    if (failedRequest.isFailed) {
+        return (
+            <main className={"flex justify-center"}>
+                <AnnouncementMessage title={"Could not fetch User's profile."} message={failedRequest.message}/>
+            </main>
+        )
+    }
+
+    const getFormattedUsername = () => {
+        return user.username.substring(0,1).toUpperCase().concat(user.username.substring(1));
+    }
+
+    return (
+        <main className={"flex flex-col justify-center gap-4"}>
+            <header className={"flex flex-col jusitfy-center items-center gap-4"}>
+                <ChatBubbleAvatar fallback={user.username.substring(0, 1).toUpperCase()}
+                                  className={"text-5xl size-32 text-black"}/>
+                <h1 className={"text-4xl"}>{getFormattedUsername()}</h1>
+            </header>
+            <FriendStatus userId={user.id} relationStatus={user.status}/>
+            <span className={"flex justify-center gap-8"}>
+                   <section className={"flex flex-col gap-2"}>
+                    <h2 className={"text-2xl italic"}>Common Friends</h2>
+                    <CommonFriends friends={user.friends}/>
+                </section>
+                <section className={"flex flex-col gap-2"}>
+                    <h2 className={"text-2xl italic"}>Common ChatRooms</h2>
+                    <CommonChatRooms chatRooms={user.commonChatRooms}/>
+                </section>
+                </span>
+        </main>
     )
 }
