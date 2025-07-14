@@ -162,14 +162,8 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
                 setChatRoomDetails(chatRoomData);
             }
         }
-    }, [chatRoom.data]);
+    }, [chatRoom.data, updateFailedRequest]);
 
-    useEffect(() => {
-        resetFailedRequest();
-        setSubscribed(false);
-        subscriptionAttemptRef.current = false;
-        queryClient.invalidateQueries({queryKey:["chats", id]});
-    }, [id, queryClient, resetFailedRequest, setSubscribed]);
 
     // Message handlers
     const handleMessage = useCallback((message: Message) => {
