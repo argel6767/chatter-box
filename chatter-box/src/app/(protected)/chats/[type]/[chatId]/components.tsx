@@ -20,6 +20,7 @@ import {LoadingSpinner} from "@/components/ui/loading";
 import {useRouter} from "next/navigation";
 import { isFailedResponse } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import {useFailedRequest} from "@/hooks/use-failed-request";
 
 type Variant = "received" | "sent";
 
@@ -136,8 +137,7 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
     const chatRoom = useGetChatRoom(id);
     const queryClient = useQueryClient();
     const webSocket = useWebSocket(id);
-    const [isFailed, setIsFailed] = useState(false);
-    const [errorMessage, setErrorMessage] = useState("");
+    const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
     const [chatRoomDetails, setChatRoomDetails] = useState<ChatRoom>({
         creator: "",
         id: 0,
@@ -156,8 +156,7 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
             const data = chatRoom.data;
 
             if (isFailedResponse(data)) {
-                setIsFailed(true);
-                setErrorMessage(data.data.errorMessage);
+                updateFailedRequest(true, data.data.errorMessage)
             } else {
                 const chatRoomData = data.data as ChatRoom;
                 setChatRoomDetails(chatRoomData);
@@ -166,12 +165,11 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
     }, [chatRoom.data]);
 
     useEffect(() => {
-        setIsFailed(false);
-        setErrorMessage("");
+        resetFailedRequest();
         setSubscribed(false);
         subscriptionAttemptRef.current = false;
         queryClient.invalidateQueries({queryKey:["chats", id]});
-    }, [id, queryClient]);
+    }, [id, queryClient, resetFailedRequest, setSubscribed]);
 
     // Message handlers
     const handleMessage = useCallback((message: Message) => {
@@ -260,11 +258,11 @@ export const ChatContainer = ({id}: ChatContainerProps) => {
     }
 
     const isNotAMember = () => {
-        return errorMessage.includes("You are not a member")
+        return failedRequest.message.includes("You are not a member")
     };
 
-    if (isFailed || webSocket.error) {
-        const error = errorMessage || webSocket.error || "Connection could not be established.";
+    if (failedRequest.isFailed || webSocket.error) {
+        const error = failedRequest.message || webSocket.error || "Connection could not be established.";
         return (
             <main className={"flex flex-col items-center justify-center w-full pt-2 pb-4 h-full shadow-lg"}>
                 <AnnouncementMessage title={"Something went wrong."} message={error}>

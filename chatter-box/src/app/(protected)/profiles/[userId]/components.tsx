@@ -11,6 +11,7 @@ import {Button} from "@/components/ui/button";
 import {useGetUserProfile} from "@/hooks/react-query";
 import {Loading} from "@/components/ui/loading";
 import {AnnouncementMessage} from "@/components/ui/annoucementMessage";
+import {useQueryClient} from "@tanstack/react-query";
 
 interface FriendStatusProps {
     userId: number
@@ -150,7 +151,8 @@ interface UserInfoProps {
 
 export const UserInfo = ({id}: UserInfoProps) => {
     const profile = useGetUserProfile(id);
-    const {failedRequest, updateFailedRequest} = useFailedRequest();
+    const {failedRequest, updateFailedRequest, resetFailedRequest} = useFailedRequest();
+    const queryClient = useQueryClient();
     const [user, setUser] = useState<UserProfileDto>({
         commonChatRooms: [],
         friends: [],
@@ -171,6 +173,12 @@ export const UserInfo = ({id}: UserInfoProps) => {
             }
         }
     }, [profile.data, updateFailedRequest]);
+
+    useEffect(() => {
+        resetFailedRequest();
+        queryClient.invalidateQueries({ queryKey: ["profile", id]
+    });
+    }, [id, queryClient, resetFailedRequest]);
 
     if (profile.isFetching || profile.isLoading) {
         return (
