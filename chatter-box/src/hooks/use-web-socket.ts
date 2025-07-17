@@ -7,10 +7,19 @@ export const useWebSocket = (chatRoomId: number) => {
     const [error, setError] = useState<string | null>(null);
     const [subscribing, setSubscribing] = useState(false);
     const subscriptionRef = useRef<string[] | null>(null);
-    const webSocket = new  WebSocketService();
+
+    const webSocketRef = useRef<WebSocketService | null>(null);
+
+    const getWebSocket = useCallback(() => {
+        if (!webSocketRef.current) {
+            webSocketRef.current = new WebSocketService();
+        }
+        return webSocketRef.current;
+    }, []);
 
     useEffect(() => {
         let mounted = true;
+        const webSocket = getWebSocket();
 
         const connect = async () => {
             try {
@@ -35,7 +44,7 @@ export const useWebSocket = (chatRoomId: number) => {
                 webSocket.unsubscribeFromRoom(chatRoomId);
             }
         };
-    }, [chatRoomId]);
+    }, [chatRoomId, getWebSocket]);
 
     const subscribeToRoom = useCallback(async (callbacks: any) => {
         if (!chatRoomId || subscribing) return null;
@@ -43,6 +52,7 @@ export const useWebSocket = (chatRoomId: number) => {
         setSubscribing(true);
         try {
             // This now waits for connection if needed
+            const webSocket = getWebSocket();
             const keys = await webSocket.subscribeToRoom(chatRoomId, callbacks);
             subscriptionRef.current = keys;
             return keys;
@@ -53,36 +63,44 @@ export const useWebSocket = (chatRoomId: number) => {
         } finally {
             setSubscribing(false);
         }
-    }, [chatRoomId, subscribing]);
+    }, [chatRoomId, subscribing, getWebSocket]);
 
     const sendMessage = useCallback(async (content: string) => {
         if (!chatRoomId) return;
 
         try {
+            const webSocket = getWebSocket();
             await webSocket.sendMessage(chatRoomId, content);
         } catch (err: any) {
             console.error('Failed to send message:', err);
             setError(err.message);
         }
-    }, [chatRoomId]);
+    }, [chatRoomId, getWebSocket]);
 
     const deleteMessage = useCallback(async (messageId: number) => {
         try {
+            const webSocket = getWebSocket();
             await webSocket.deleteMessage(messageId);
         } catch (err: any) {
             console.error('Failed to delete message:', err);
             setError(err.message);
         }
-    }, []);
+    }, [getWebSocket]);
 
     const editMessage = useCallback(async (messageId: number, newContent: UpdateMessageDto) => {
         try {
+            const webSocket = getWebSocket();
             await webSocket.editMessage(messageId, newContent);
         } catch (err: any) {
             console.error('Failed to edit message:', err);
             setError(err.message);
         }
-    }, []);
+    }, [getWebSocket]);
+
+    const unsubscribe = useCallback((roomId: number) => {
+        const webSocket = getWebSocket();
+        webSocket.unsubscribeFromRoom(roomId);
+    }, [getWebSocket]);
 
     return {
         connected,
@@ -92,6 +110,6 @@ export const useWebSocket = (chatRoomId: number) => {
         deleteMessage,
         editMessage,
         subscribing,
-        unsubscribe: webSocket.unsubscribeFromRoom,
+        unsubscribe
     };
 };
